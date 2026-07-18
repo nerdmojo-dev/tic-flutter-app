@@ -6,6 +6,6 @@ import 'package:tic_task_app/route/TasksScreen.dart';
 final routes = {
   "/": (_) => const SplashScreen(),
   "/login": (_) => const LoginScreen(),
-  "/tasks": (_) => const TasksScreen(),
+  "/tasks": (_) => const TaskScreen(),
 };
 

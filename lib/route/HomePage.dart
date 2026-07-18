@@ -13,12 +13,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       title: 'TIC Task App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        
       ),
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: routes,
     );
   }
