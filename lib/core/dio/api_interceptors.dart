@@ -82,7 +82,7 @@ class ApiInterceptor extends Interceptor {
     }
 
     final response = await dio.post(
-      "/generate-refresh-token",
+      "/getAccessToken",
       options: Options(headers: {"Authorization": "Bearer $refreshToken"}),
     );
 
