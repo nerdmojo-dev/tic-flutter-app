@@ -70,4 +70,39 @@ class User {
       "lastLogin": lastLogin?.toIso8601String(),
     };
   }
+
+
+  User copyWith({
+  String? id,
+  String? employeeId,
+  String? fullName,
+  String? department,
+  String? role,
+  String? gender,
+  bool? isActive,
+  bool? isFirstLogin,
+  bool? accountLocked,
+  int? loginAttempts,
+  String? supervisorId,
+  DateTime? createdAt,
+  DateTime? updatedAt,
+  DateTime? lastLogin,
+}) {
+  return User(
+    id: id ?? this.id,
+    employeeId: employeeId ?? this.employeeId,
+    fullName: fullName ?? this.fullName,
+    department: department ?? this.department,
+    role: role ?? this.role,
+    gender: gender ?? this.gender,
+    isActive: isActive ?? this.isActive,
+    isFirstLogin: isFirstLogin ?? this.isFirstLogin,
+    accountLocked: accountLocked ?? this.accountLocked,
+    loginAttempts: loginAttempts ?? this.loginAttempts,
+    supervisorId: supervisorId ?? this.supervisorId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    lastLogin: lastLogin ?? this.lastLogin,
+  );
+}
 }

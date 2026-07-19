@@ -25,7 +25,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
-          AppOverlaySnackbar.showError(context, message: error.toString().substring(10));
+          final parts = error.toString().split(":");
+
+          final message = parts.length > 1
+              ? parts.sublist(1).join(":").trim()
+              : parts.first;
+
+          AppOverlaySnackbar.showError(context, message: message);
         },
       );
     });
