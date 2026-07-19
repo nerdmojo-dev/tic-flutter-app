@@ -89,8 +89,7 @@ class ApiInterceptor extends Interceptor {
     final data = response.data;
 
     await SecureStorage.saveTokens(
-      accessToken: data["accessToken"],
-      refreshToken: data["refreshToken"],
+      accessToken: data["token"],
     );
   }
 
