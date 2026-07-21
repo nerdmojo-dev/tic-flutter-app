@@ -17,7 +17,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool obscurePassword = true;
   bool firstTimeLogin = false;
-  bool isLoginClicked=false;
+  bool isLoginClicked = false;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -44,28 +44,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: SingleChildScrollView(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 420),
-            padding: const EdgeInsets.fromLTRB(30, 60, 30, 20),
+            padding: const EdgeInsets.fromLTRB(30, 40, 30, 20),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 80,
+                        padding: const EdgeInsets.all(8),
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white,
+                          border: Border.all(
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF2563EB,
+                              ).withValues(alpha: 0.1),
+                              blurRadius: 15,
+                              offset: Offset.zero,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Image(
+                            image: AssetImage("lib/assets/logo.jpg"),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 15),
+                      Column(
+                        children: [
+                          const Text(
+                            "Welcome Back",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.heading,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Please login to your account",
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
                   /// Header
-                  const Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.heading,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Please login to your account",
-                    style: TextStyle(fontSize: 15, color: AppColors.text),
-                  ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 60),
 
                   /// Employee ID
                   const Text(
@@ -83,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                     decoration: InputDecoration(
                       hintText: "e.g. EMP1023",
-                      prefixIcon: const Icon(Icons.badge_outlined),
+                      prefixIcon: const Icon(Icons.badge_rounded),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -108,12 +152,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                     decoration: InputDecoration(
                       hintText: "Enter password",
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_rounded),
                       suffixIcon: IconButton(
                         icon: Icon(
                           obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? Icons.visibility_rounded
+                              : Icons.visibility_off_rounded,
                         ),
                         onPressed: () {
                           setState(() {
@@ -126,7 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -139,7 +183,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
 
                   /// Login Button
                   SizedBox(
@@ -161,7 +205,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               }
 
                               setState(() {
-                                isLoginClicked=true;
+                                isLoginClicked = true;
                               });
 
                               await ref
@@ -172,7 +216,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   );
 
                               setState(() {
-                                isLoginClicked=false;
+                                isLoginClicked = false;
                               });
                             },
                       child: isLoginClicked

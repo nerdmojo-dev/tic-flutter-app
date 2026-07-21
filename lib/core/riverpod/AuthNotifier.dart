@@ -111,14 +111,14 @@ class AuthNotifier extends AsyncNotifier<User?> {
     });
   }
 
-  Future<void> createTask(String text) async {
+  Future<void> createTask(String text,String jobNumber) async {
     final user = state.value;
     if (user == null) {
       throw Exception("No logged in user");
     }
 
     final CreateTaskResponse response = await _repository.submitTranscript(
-      user.fullName,
+      jobNumber,
       text,
     );
 
