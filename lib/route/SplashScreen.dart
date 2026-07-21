@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
+import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'dart:async';
+
+import 'package:tic_task_app/shared/HealthService.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _initialize();
   }
 
   @override
@@ -75,4 +80,19 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+  
+  Future<void> _initialize() async {
+    
+
+    // Navigate
+    if (!mounted) return;
+
+    if(await Healthservice(dio: DioClient.dio).pingServer()){
+      AppOverlaySnackbar.showSuccess(context, message: "Server uo and running");
+    }else{
+      AppOverlaySnackbar.showError(context, message: "Server down");
+    }
+
+  }
+
 }

@@ -17,6 +17,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool obscurePassword = true;
   bool firstTimeLogin = false;
+  bool isLoginClicked=false;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -25,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
+          print(stackTrace);
           final parts = error.toString().split(":");
 
           final message = parts.length > 1
@@ -151,12 +153,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: authState.isLoading
+                      onPressed: isLoginClicked
                           ? null
                           : () async {
                               if (!_formKey.currentState!.validate()) {
                                 return;
                               }
+
+                              setState(() {
+                                isLoginClicked=true;
+                              });
 
                               await ref
                                   .read(authProvider.notifier)
@@ -164,14 +170,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     employeeIdController.text.trim(),
                                     passwordController.text,
                                   );
+
+                              setState(() {
+                                isLoginClicked=false;
+                              });
                             },
-                      child: authState.isLoading
+                      child: isLoginClicked
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: Colors.black,
                               ),
                             )
                           : const Text(

@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
 class SecureStorage {
   static const _storage = FlutterSecureStorage();
@@ -11,10 +12,21 @@ class SecureStorage {
     return await _storage.read(key: "refreshToken");
   }
 
-  static Future<void> saveTokens({
-    required String accessToken
-  }) async {
+  static Future<void> saveTokens({required String accessToken}) async {
     await _storage.write(key: "accessToken", value: accessToken);
+  }
+
+  static Future<void> saveLastSubmittedDate() async {
+    await _storage.write(
+      key: "last_submit_date",
+      value: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    );
+  }
+
+  static Future<String?> readLastSubmitDate() async {
+    await _storage.read(
+      key: "last_submit_date",
+    );
   }
 
   static Future<void> clear() async {

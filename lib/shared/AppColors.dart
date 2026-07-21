@@ -18,6 +18,33 @@ class AppColors {
   static const Color danger = Color(0xFFEF4444);
   static const Color warning = Color(0xFFF59E0B);
 
+  static const LinearGradient greenBlueGradient = LinearGradient(
+    begin: Alignment.bottomLeft,
+    end: Alignment.topRight,
+    colors: [
+      Color(0xFF051937),
+      Color(0xFF004D7A),
+      Color(0xFF008793),
+      Color(0xFF00BF72),
+      Color(0xFFA8EB12),
+    ],
+  );
+
+
+  static const LinearGradient lightPinkGradient = LinearGradient(
+    begin: Alignment.bottomLeft,
+    end: Alignment.topRight,
+    colors: [
+      Color(0xFF051937),
+      Color(0xFF004D7A),
+      Color(0xFF008793),
+      Color(0xFF00BF72),
+      Color(0xFFA8EB12),
+    ],
+    stops: [0.0, 0.25, 0.5, 0.75, 1.0], // Optional
+  );
+
+
   // Shadows
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,

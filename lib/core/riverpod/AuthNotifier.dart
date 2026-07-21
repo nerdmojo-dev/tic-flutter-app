@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/repository/AuthRepository.dart';
 import 'package:tic_task_app/dto/ApplicationResponse.dart';
 import 'package:tic_task_app/dto/Auth.dart';
 import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
+import 'package:tic_task_app/dto/TaskResponse.dart';
 import 'package:tic_task_app/dto/User.dart';
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, User?>(
@@ -60,6 +62,15 @@ class AuthNotifier extends AsyncNotifier<User?> {
       );
 
       await _storage.write(
+        key: "last_submit_date",
+        value: DateFormat('yyyy-MM-dd').format(
+          authData.alreadyExistingTask
+              ? DateTime.now()
+              : DateTime.now().subtract(const Duration(days: 3)),
+        ),
+      );
+
+      await _storage.write(
         key: "user",
         value: jsonEncode(authData.user.toJson()),
       );
@@ -98,6 +109,22 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
       return updatedUser;
     });
+  }
+
+  Future<void> createTask(String text) async {
+    final user = state.value;
+    if (user == null) {
+      throw Exception("No logged in user");
+    }
+
+    final CreateTaskResponse response = await _repository.submitTranscript(
+      user.fullName,
+      text,
+    );
+
+    if (response.hasError) {
+      throw Exception(response.message);
+    }
   }
 
   Future<void> logout() async {
