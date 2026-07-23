@@ -9,7 +9,9 @@ import 'package:tic_task_app/dto/ApplicationResponse.dart';
 import 'package:tic_task_app/dto/Auth.dart';
 import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
 import 'package:tic_task_app/dto/TaskResponse.dart';
+import 'package:tic_task_app/dto/TaskResponseDto.dart';
 import 'package:tic_task_app/dto/User.dart';
+import 'package:tic_task_app/route/ChangePassword.dart';
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, User?>(
   AuthNotifier.new,
@@ -74,7 +76,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
         key: "user",
         value: jsonEncode(authData.user.toJson()),
       );
-
+      print(authData.user.toJson());
       return authData.user;
     });
   }
@@ -83,35 +85,54 @@ class AuthNotifier extends AsyncNotifier<User?> {
     required String currentPassword,
     required String newPassword,
   }) async {
-    state = await AsyncValue.guard(() async {
-      final ChangepasswordResponse response = await _repository.changePassword(
+    try {
+      final currentUser = state.value;
+
+      if (currentUser == null) {
+        throw Exception("No logged in user");
+      }
+      ChangepasswordResponse response = await _repository.changePassword(
         currentPassword: currentPassword,
         newPassword: newPassword,
       );
+      
 
-      print("RESPONSE : $response");
-
-      if (response.hasError) {
-        throw Exception(response.message);
-      }
-
-      final user = state.value;
-      if (user == null) {
-        throw Exception("No logged in user");
-      }
-
-      final updatedUser = user.copyWith(isFirstLogin: false);
+      final updatedUser = currentUser.copyWith(isFirstLogin: false);
 
       await _storage.write(
         key: "user",
         value: jsonEncode(updatedUser.toJson()),
       );
-
-      return updatedUser;
-    });
+      Future.delayed(Duration(seconds: 2),(){
+        state = AsyncData(currentUser.copyWith(isFirstLogin: false));
+      });
+    } on Exception catch (e) {
+      throw e;
+    }
   }
 
-  Future<void> createTask(String text,String jobNumber) async {
+
+
+  Future<TaskResponseDto> getTasks({
+    required String startDate,
+    required String endDate,
+  }) async {
+    try {
+      final currentUser = state.value;
+
+      if (currentUser == null) {
+        throw Exception("No logged in user");
+      }
+      TaskResponseDto response = await _repository.getTasksByDate(startDate: startDate, endDate: endDate);
+      
+
+      return response;
+    } on Exception catch (e) {
+      throw e;
+    }
+  }
+
+  Future<void> createTask(String text, String jobNumber) async {
     final user = state.value;
     if (user == null) {
       throw Exception("No logged in user");

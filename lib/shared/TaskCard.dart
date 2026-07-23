@@ -4,14 +4,20 @@ import 'package:intl/intl.dart';
 class TaskCard extends StatelessWidget {
   const TaskCard({
     super.key,
+    required this.status,
     required this.taskName,
     required this.description,
     required this.dueDate,
+    this.fullName,
+    this.userId,
   });
 
+  final String status;
   final String taskName;
   final String description;
   final DateTime dueDate;
+  final String? fullName;
+  final String? userId;
 
   @override
   Widget build(BuildContext context) {
@@ -29,31 +35,66 @@ class TaskCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Badge
-            Container(
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.autorenew,
+                        size: 16,
+                        color: Colors.green.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        status,
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8,),
+
+                Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.green.shade100,
+                color: Colors.blue.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.autorenew,
+                    Icons.verified_user_rounded,
                     size: 16,
-                    color: Colors.green.shade700,
+                    color: Colors.blue.shade700,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    "Completed",
+                    userId!.toUpperCase(),
                     style: TextStyle(
-                      color: Colors.green.shade700,
+                      color: Colors.blue.shade700,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
                   ),
                 ],
               ),
+            ),
+              ],
             ),
 
             const SizedBox(height: 10),
@@ -65,7 +106,11 @@ class TaskCard extends StatelessWidget {
             ),
 
             const SizedBox(height: 8),
-            Text(description, style: const TextStyle(color: Colors.grey),maxLines: 10,),
+            Text(
+              description,
+              style: const TextStyle(color: Colors.grey),
+              maxLines: 10,
+            ),
             const SizedBox(height: 6),
 
             Row(
@@ -83,6 +128,25 @@ class TaskCard extends StatelessWidget {
 
                 const SizedBox(width: 10),
 
+                // Container(
+                //   width: 5,
+                //   height: 5,
+                //   decoration: const BoxDecoration(
+                //     color: Colors.grey,
+                //     shape: BoxShape.circle,
+                //   ),
+                // ),
+
+                // const SizedBox(width: 10),
+
+                // Icon(Icons.access_time_outlined, size: 16, color: Colors.grey),
+                // const SizedBox(width: 4),
+                // Text(
+                //   DateFormat("hh:mm a").format(dueDate),
+                //   style: TextStyle(color: Colors.grey),
+                // ),
+                // const SizedBox(width: 10),
+
                 Container(
                   width: 5,
                   height: 5,
@@ -93,11 +157,10 @@ class TaskCard extends StatelessWidget {
                 ),
 
                 const SizedBox(width: 10),
-
-                Icon(Icons.access_time_outlined, size: 16, color: Colors.grey),
+                Icon(Icons.person_2, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
-                  DateFormat("hh:mm a").format(dueDate),
+                  fullName!,
                   style: TextStyle(color: Colors.grey),
                 ),
               ],

@@ -5,7 +5,8 @@ import 'package:tic_task_app/shared/AppColors.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
-  const ChangePasswordScreen({super.key});
+  const ChangePasswordScreen({super.key, required this.popOnSuccess});
+  final bool popOnSuccess;
 
   @override
   ConsumerState<ChangePasswordScreen> createState() =>
@@ -18,6 +19,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool isLoginClicked = false;
 
   bool _hideCurrentPassword = true;
   bool _hideNewPassword = true;
@@ -52,14 +54,37 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
-    
+    setState(() {
+      isLoginClicked = true;
+    });
+
     // TODO: Call your API
-    await ref
-        .read(authProvider.notifier)
-        .changePassword(
-          currentPassword: _currentPasswordController.text,
-          newPassword: _newPasswordController.text,
-        );
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .changePassword(
+            currentPassword: _currentPasswordController.text,
+            newPassword: _newPasswordController.text,
+          );
+
+      AppOverlaySnackbar.showSuccess(
+        context,
+        message: "Password Changed successfully",
+      );
+
+      if (widget.popOnSuccess) {
+        Navigator.pop(context, true);
+      }
+    } on Exception catch (e) {
+      AppOverlaySnackbar.showError(
+        context,
+        message: e.toString().split(":")[1],
+      );
+    }
+
+    setState(() {
+      isLoginClicked = false;
+    });
   }
 
   InputDecoration _inputDecoration({
@@ -92,24 +117,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authProvider, (previous, next) {
-      next.whenOrNull(
-        data: (user) {
-          if (previous?.isLoading == true) {
-            AppOverlaySnackbar.showSuccess(
-              context,
-              message: "Password changed successfully",
-            );
-
-            Navigator.pop(context);
-          }
-        },
-        error: (error, stackTrace) {
-          AppOverlaySnackbar.showError(context, message: error.toString());
-        },
-      );
-    });
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -118,16 +125,47 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: EdgeInsetsGeometry.only(left: 10),
-                child: const Text(
-                  "Change Password",
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 80,
+                    padding: const EdgeInsets.all(8),
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.white,
+                      border: Border.all(
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                          blurRadius: 15,
+                          offset: Offset.zero,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image(image: AssetImage("lib/assets/logo.jpg")),
+                    ),
+                  ),
+                  SizedBox(width: 15),
+                  const Text(
+                    "Change Password",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
+
               SizedBox(height: 20),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 20,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -235,7 +273,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton(
-                          onPressed: _canSubmit ? _updatePassword : null,
+                          onPressed: isLoginClicked
+                              ? null
+                              : _canSubmit
+                              ? _updatePassword
+                              : null,
 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
@@ -251,13 +293,22 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            "Update Password",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: isLoginClicked
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Text(
+                                  "Update Password",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

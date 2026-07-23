@@ -1,3 +1,5 @@
+import 'package:tic_task_app/dto/User.dart';
+
 class Task {
   final String id;
   final String title;
@@ -5,7 +7,7 @@ class Task {
   final String status;
   final String priority;
   final List<dynamic> assignedTo;
-  final String createdBy;
+  final User createdBy;
   final DateTime dueDate;
   final List<dynamic> tags;
   final bool isDeleted;
@@ -39,7 +41,7 @@ class Task {
       status: json["status"],
       priority: json["priority"],
       assignedTo: List<dynamic>.from(json["assignedTo"]),
-      createdBy: json["createdBy"],
+      createdBy: User.fromJson(json["createdBy"]),
       dueDate: DateTime.parse(json["dueDate"]),
       tags: List<dynamic>.from(json["tags"]),
       isDeleted: json["isDeleted"],

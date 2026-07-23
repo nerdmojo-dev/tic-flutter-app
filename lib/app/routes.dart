@@ -8,6 +8,6 @@ final routes = {
   "/": (_) => const SplashScreen(),
   "/login": (_) => const LoginScreen(),
   "/tasks": (_) => const TaskScreen(),
-  "/changePassword": (_)=> const ChangePasswordScreen()
+  "/changePassword": (_)=> const ChangePasswordScreen(popOnSuccess: false,)
 };
 

@@ -10,7 +10,7 @@ class User {
   final bool isActive;
   final bool isFirstLogin;
   final bool accountLocked;
-  final int loginAttempts;
+  final int? loginAttempts;
   final String? supervisorId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -26,7 +26,7 @@ class User {
     required this.isActive,
     required this.isFirstLogin,
     required this.accountLocked,
-    required this.loginAttempts,
+    this.loginAttempts,
     this.supervisorId,
     required this.createdAt,
     required this.updatedAt,

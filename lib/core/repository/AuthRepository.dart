@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:tic_task_app/dto/ApplicationResponse.dart';
 import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
 import 'package:tic_task_app/dto/TaskResponse.dart';
+import 'package:tic_task_app/dto/TaskResponseDto.dart';
 
 class AuthRepository {
   final Dio dio;
@@ -41,7 +42,7 @@ class AuthRepository {
         "/auth/changePassword",
         data: {"oldPassword": currentPassword, "newPassword": newPassword},
       );
-      print(response.data);
+      
       return ChangepasswordResponse.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response != null) {
@@ -49,6 +50,30 @@ class AuthRepository {
           e.response?.data["data"] ??
               e.response?.data["message"] ??
               "Change Password failed",
+        );
+      }
+
+      throw Exception("Unable to connect to server");
+    }
+  }
+
+
+  Future<TaskResponseDto> getTasksByDate({
+    required String startDate,
+    required String endDate,
+  }) async {
+    try {
+      final response = await dio.post(
+        "/tasks/getAssignedTasks?page=1&offset=10&startDate=$startDate&endDate=$endDate",
+      );
+      
+      return TaskResponseDto.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(
+          e.response?.data["data"] ??
+              e.response?.data["message"] ??
+              "Tasks fetching issue",
         );
       }
 

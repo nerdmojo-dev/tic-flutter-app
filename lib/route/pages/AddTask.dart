@@ -30,6 +30,12 @@ class _AddTaskState extends ConsumerState<AddTask> {
   @override
   void initState() {
     super.initState();
+    _controller.addListener(() {
+      if (!_isListening) {
+        _fullTranscript = _controller.text;
+      }
+    });
+
     _loadSubmissionStatus();
 
     _initSpeech();
@@ -56,7 +62,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
       now.year,
       now.month,
       now.day,
-      17, // 5 PM
+      16, // 4 PM
       0,
     );
 
@@ -64,8 +70,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
       now.year,
       now.month,
       now.day,
-      20, // 8 PM
-      0,
+      23, // 11:30 PM
+      30,
     );
 
     return now.isAfter(start) && now.isBefore(end);
@@ -86,7 +92,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
     if (!_isSubmissionWindowOpen) {
       AppOverlaySnackbar.showError(
         context,
-        message: "Tasks can only be submitted between 5:00 PM and 8:00 PM.",
+        message: "Tasks can only be submitted between 4:00 PM and 11:30 PM.",
       );
       return;
     }
@@ -103,7 +109,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
     });
 
     try {
-      await ref.read(authProvider.notifier).createTask(_controller.text,_jobNumber.text);
+      await ref
+          .read(authProvider.notifier)
+          .createTask(_controller.text, _jobNumber.text);
       SecureStorage.saveLastSubmittedDate();
 
       AppOverlaySnackbar.showSuccess(
@@ -130,6 +138,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
   }
 
   Future<void> _startListening() async {
+    if (_speech.isListening) _stopListening();
+
     await _speech.listen(
       localeId: _locale, // or en_IN
       listenFor: const Duration(minutes: 30), // maximum desired duration
@@ -262,10 +272,17 @@ class _AddTaskState extends ConsumerState<AddTask> {
                   onSwipe: () {
                     print("SWIPE");
                   },
-                  onChanged: (bool state) {
+                  onChanged: (bool state) async {
                     print("existing $_locale $state");
+                    if (_isListening) {
+                      await _stopListening();
+                    }
+
                     setState(() {
-                      _locale = !state ? "en_IN" : "bn_IN";
+                      _locale = state ? "bn_IN" : "en_IN";
+                      _fullTranscript = "";
+                      _currentTranscript = "";
+                      _controller.clear();
                     });
                   },
                 ),
@@ -289,7 +306,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
           ),
           SizedBox(height: 15),
           Text(
-            "You can submit your daily task status only between 5:00 PM and 8:00 PM.",
+            "You can submit your daily task status only between 4:00 PM and 11:30 PM.",
             style: TextStyle(
               color: Colors.blue,
               fontSize: 14,
@@ -356,12 +373,14 @@ class _AddTaskState extends ConsumerState<AddTask> {
               ),
             ],
           ),
-          SizedBox(height: 30,),
+          SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isSubmissionWindowOpen && _submittedToday
-                  ? _submit
+              onPressed: _isSubmissionWindowOpen
+                  ? _submittedToday
+                        ? null
+                        : _submit
                   : null,
               label: const Text("Submit Status"),
               style: ElevatedButton.styleFrom(

@@ -81,7 +81,7 @@ class ApiInterceptor extends Interceptor {
       throw Exception("No refresh token");
     }
 
-    final response = await dio.post(
+    final response = await dio.get(
       "/auth/getAccessToken",
       options: Options(headers: {"Authorization": "Bearer $refreshToken"}),
     );

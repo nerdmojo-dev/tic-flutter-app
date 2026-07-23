@@ -2,18 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 
-class FilterCard extends StatefulWidget {
-  const FilterCard({super.key});
+class FilterCard extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final ValueChanged<DateTime?> onStartDateChanged;
+  final ValueChanged<DateTime?> onEndDateChanged;
+  final VoidCallback onApply;
 
-  @override
-  State<FilterCard> createState() => _FilterCardState();
-}
+  const FilterCard({
+    super.key,
+    required this.startDate,
+    required this.endDate,
+    required this.onStartDateChanged,
+    required this.onEndDateChanged,
+    required this.onApply,
+  });
 
-class _FilterCardState extends State<FilterCard> {
-  DateTime? startDate;
-  DateTime? endDate;
-
-  Future<void> _pickDate(bool isStart) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    bool isStart,
+  ) async {
     final date = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -22,17 +30,16 @@ class _FilterCardState extends State<FilterCard> {
     );
 
     if (date != null) {
-      setState(() {
-        if (isStart) {
-          startDate = date;
-        } else {
-          endDate = date;
-        }
-      });
+      if (isStart) {
+        onStartDateChanged(date);
+      } else {
+        onEndDateChanged(date);
+      }
     }
   }
 
   Widget _dateField({
+    required BuildContext context,
     required String label,
     required DateTime? value,
     required VoidCallback onTap,
@@ -61,7 +68,7 @@ class _FilterCardState extends State<FilterCard> {
                   Expanded(
                     child: Text(
                       value == null
-                          ? "dd/mm/yyyy"
+                          ? "dd/MM/yyyy"
                           : DateFormat("dd/MM/yyyy").format(value),
                       style: TextStyle(
                         color: value == null ? Colors.grey : Colors.black87,
@@ -98,15 +105,17 @@ class _FilterCardState extends State<FilterCard> {
             Row(
               children: [
                 _dateField(
+                  context: context,
                   label: "Start Date",
                   value: startDate,
-                  onTap: () => _pickDate(true),
+                  onTap: () => _pickDate(context, true),
                 ),
                 const SizedBox(width: 16),
                 _dateField(
+                  context: context,
                   label: "End Date",
                   value: endDate,
-                  onTap: () => _pickDate(false),
+                  onTap: () => _pickDate(context, false),
                 ),
               ],
             ),
@@ -114,9 +123,7 @@ class _FilterCardState extends State<FilterCard> {
             SizedBox(
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  // Apply filter
-                },
+                onPressed: onApply,
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                   side: const BorderSide(color: AppColors.secondary, width: 2),

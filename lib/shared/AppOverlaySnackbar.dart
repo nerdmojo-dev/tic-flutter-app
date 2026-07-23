@@ -68,6 +68,8 @@ class AppOverlaySnackbar {
   }
 
   static void showError(BuildContext context, {required String message}) {
+
+    print(message);
     _currentOverlay?.remove();
 
     final overlay = Overlay.of(context);

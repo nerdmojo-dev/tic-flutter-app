@@ -39,7 +39,7 @@ class AuthGate extends ConsumerWidget {
             return const LoginScreen(key: ValueKey("login"));
           }
 
-          if(user.isFirstLogin) return const ChangePasswordScreen(key: ValueKey("changePassword"),);
+          if(user.isFirstLogin) return const ChangePasswordScreen(key: ValueKey("changePassword"),popOnSuccess: false,);
 
           return const TaskScreen(key: ValueKey("task"));
         },

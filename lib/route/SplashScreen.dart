@@ -88,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if(await Healthservice(dio: DioClient.dio).pingServer()){
-      AppOverlaySnackbar.showSuccess(context, message: "Server uo and running");
+      AppOverlaySnackbar.showSuccess(context, message: "Server running");
     }else{
       AppOverlaySnackbar.showError(context, message: "Server down");
     }

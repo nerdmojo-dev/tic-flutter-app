@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
+import 'package:tic_task_app/route/ChangePassword.dart';
 import 'package:tic_task_app/route/LoginScreen.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 
@@ -80,7 +81,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: Column(
                     children: [
                       Text(
-                        user!.fullName.toString(),
+                        user?.fullName.toString()??"",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -88,7 +89,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        user!.employeeId.toUpperCase(),
+                        user?.employeeId.toUpperCase()??"",
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 15,
@@ -108,6 +109,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 title: "Change Password",
                 onTap: () {
                   // Navigate to Change Password
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePasswordScreen(popOnSuccess: true,),
+                    ),
+                  );
                 },
               ),
               SizedBox(height: 15),
@@ -115,8 +122,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 icon: Icons.logout,
                 title: "Logout",
                 isDanger: true,
-                onTap: () {
+                onTap: () async {
                   // Logout
+                  await ref.read(authProvider.notifier).logout();
                 },
               ),
             ],
