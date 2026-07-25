@@ -13,25 +13,32 @@ class Taskrepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try{
+    try {
       final response = await dio.get(
-      "/tasks/getAssignedTasks",
-      queryParameters: {
-        "page": page,
-        "offset": offset,
-        if (startDate != null)
-          "startDate": DateFormat("yyyy-MM-dd").format(startDate),
-        if (endDate != null)
-          "endDate": DateFormat("yyyy-MM-dd").format(endDate),
-      },
-    );
+        "/tasks/getAssignedTasks",
+        queryParameters: {
+          "page": page,
+          "offset": offset,
+          if (startDate != null)
+            "startDate": DateFormat("yyyy-MM-dd").format(startDate),
+          if (endDate != null)
+            "endDate": DateFormat("yyyy-MM-dd").format(endDate),
+        },
+      );
 
-    print(response);
+      print(response);
 
-    return TaskResponseDto.fromJson(response.data);
-    }on Exception catch(e){
+      return TaskResponseDto.fromJson(response.data);
+    } on Exception catch (e) {
       print(e);
       throw new Exception("hatt bal");
     }
+  }
+
+  Future<void> editTask(String taskId, String title, String description) async {
+    await dio.put(
+      "/tasks/editTask/$taskId",
+      data: {"title": title, "description": description},
+    );
   }
 }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
+import 'package:tic_task_app/dto/Task.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/FilterCard.dart';
-import 'package:tic_task_app/shared/StatusReportsFilterDateCard.dart';
 import 'package:tic_task_app/shared/TaskCard.dart';
 
 class StatusReports extends ConsumerStatefulWidget {
@@ -18,15 +18,76 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
   DateTime? startDate;
   DateTime? endDate;
 
+  Future<void> _showEditDialog(Task task) async {
+    final titleController = TextEditingController(text: task.title);
+    final descriptionController = TextEditingController(text: task.description);
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Edit Task"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: "Title"),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionController,
+                maxLines: 5,
+                decoration: const InputDecoration(labelText: "Description"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ref
+                  .read(taskProvider.notifier)
+                  .editTask(
+                    task.id,
+                    titleController.text.trim(),
+                    descriptionController.text.trim(),
+                  );
+
+              Navigator.pop(context);
+
+              ref.read(taskProvider.notifier).fetchTasks();
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    final now = DateTime.now();
+
+    final startDate = DateTime(now.year, now.month, now.day, 0, 0, 0);
+
+    final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+
+    Future.microtask(() {
+      ref
+          .read(taskProvider.notifier)
+          .fetchTasks(startDate: startDate, endDate: endDate);
+    });
+
     ref.listenManual(taskProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stackTrace) {
-          print(error);
-          print(stackTrace);
           AppOverlaySnackbar.showError(
             context,
             message: "Task fetching failed",
@@ -34,6 +95,12 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
         },
       );
     });
+  }
+
+  @override
+  void dispose() {
+    print("AddTask dispose");
+    super.dispose();
   }
 
   @override
@@ -133,9 +200,12 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
                     taskName: task.title,
                     description: task.description,
                     dueDate: task.dueDate,
+                    isEdited: task.isEdited,
                     status: task.status,
                     fullName: task.createdBy.fullName,
                     userId: task.createdBy.employeeId,
+                    taskId: task.id,
+                    onEdit: () => _showEditDialog(task),
                   );
                 },
               ),

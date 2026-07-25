@@ -152,4 +152,6 @@ class AuthNotifier extends AsyncNotifier<User?> {
     await _storage.deleteAll();
     state = const AsyncData(null);
   }
+
+  
 }

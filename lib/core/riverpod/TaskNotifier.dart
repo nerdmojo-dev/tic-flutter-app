@@ -30,6 +30,10 @@ class TaskNotifier extends AsyncNotifier<TaskResponseDto> {
     });
   }
 
+  Future<void> editTask(String taskId, String title, String description) async {
+    await _repository.editTask(taskId, title, description);
+  }
+
   @override
   FutureOr<TaskResponseDto> build() async {
     final now = DateTime.now();

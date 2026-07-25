@@ -7,17 +7,44 @@ class TaskCard extends StatelessWidget {
     required this.status,
     required this.taskName,
     required this.description,
+    required this.isEdited,
     required this.dueDate,
     this.fullName,
     this.userId,
+    required this.taskId,
+    required this.onEdit,
   });
-
+  final VoidCallback? onEdit;
+  final String taskId;
+  final bool isEdited;
   final String status;
   final String taskName;
   final String description;
   final DateTime dueDate;
   final String? fullName;
   final String? userId;
+
+  bool get _isSubmissionWindowOpen {
+    final now = DateTime.now();
+
+    final start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      16, // 4 PM
+      0,
+    );
+
+    final end = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      23, // 11:30 PM
+      30,
+    );
+
+    return now.isAfter(start) && now.isBefore(end);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,34 +93,47 @@ class TaskCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 8,),
+                SizedBox(width: 8),
 
                 Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.verified_user_rounded,
-                    size: 16,
-                    color: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    userId!.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade100,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
-              ),
-            ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_user_rounded,
+                        size: 16,
+                        color: Colors.blue.shade700,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        userId!.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+                !isEdited
+                    ? _isSubmissionWindowOpen
+                          ? OutlinedButton.icon(
+                              onPressed: onEdit,
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text("Edit"),
+                            ):SizedBox()
+                    : const Text("Edited"),
               ],
             ),
 
@@ -146,7 +186,6 @@ class TaskCard extends StatelessWidget {
                 //   style: TextStyle(color: Colors.grey),
                 // ),
                 // const SizedBox(width: 10),
-
                 Container(
                   width: 5,
                   height: 5,
@@ -159,10 +198,7 @@ class TaskCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Icon(Icons.person_2, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(
-                  fullName!,
-                  style: TextStyle(color: Colors.grey),
-                ),
+                Text(fullName!, style: TextStyle(color: Colors.grey)),
               ],
             ),
           ],

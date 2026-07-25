@@ -78,12 +78,16 @@ class _AddTaskState extends ConsumerState<AddTask> {
   }
 
   Future<void> _loadSubmissionStatus() async {
+    setState(() {
+      _isSubmitting = true;
+    });
     final submitted = await hasSubmittedToday();
-    print(_isSubmissionWindowOpen);
+    print(submitted);
 
     if (mounted) {
       setState(() {
         _submittedToday = submitted;
+        if (submitted) _isSubmitting = false;
       });
     }
   }
@@ -104,10 +108,6 @@ class _AddTaskState extends ConsumerState<AddTask> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
-
     try {
       await ref
           .read(authProvider.notifier)
@@ -122,7 +122,13 @@ class _AddTaskState extends ConsumerState<AddTask> {
       _controller.clear();
     } catch (e) {
       print(e);
-      AppOverlaySnackbar.showError(context, message: "$e");
+      final parts = e.toString().split(":");
+
+      final message = parts.length > 1
+          ? parts.sublist(1).join(":").trim()
+          : parts.first;
+
+      AppOverlaySnackbar.showError(context, message: message);
     } finally {
       setState(() {
         _isSubmitting = false;

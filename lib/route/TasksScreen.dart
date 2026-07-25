@@ -23,12 +23,22 @@ class TaskScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskScreenState extends ConsumerState<TaskScreen> {
-  int currentIndex=0;
-  List pages=[
-    StatusReports(),
-    AddTask(),
-    ProfilePage()
-  ];
+  int currentIndex = 0;
+  Widget getCurrentPage() {
+    switch (currentIndex) {
+      case 0:
+        return StatusReports(key: UniqueKey());
+
+      case 1:
+        return AddTask();
+
+      case 2:
+        return ProfilePage(key: UniqueKey());
+
+      default:
+        return const SizedBox();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +53,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(15, 30, 15, 20),
-                child: Column(
-                  children: [
-                    
-                    pages[currentIndex],
-                  ],
-                ),
+                child: Column(children: [getCurrentPage()]),
               ),
             );
           },

@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 
 class ApiInterceptor extends Interceptor {
-
   final Dio dio;
 
   ApiInterceptor(this.dio);
@@ -17,6 +16,10 @@ class ApiInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    // Skip attaching access token for refresh endpoint
+    if (options.extra["skipAuth"] == true) {
+      return handler.next(options);
+    }
 
     final token = await SecureStorage.getAccessToken();
 
@@ -28,47 +31,41 @@ class ApiInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    handler.next(response);
-  }
-
-  @override
   Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+    // Only refresh on 401
     if (err.response?.statusCode != 401) {
       return handler.next(err);
     }
 
+    // Don't refresh if the refresh endpoint itself failed
+    if (err.requestOptions.extra["skipAuth"] == true) {
+      return handler.next(err);
+    }
+
     try {
-      // If another request is already refreshing, wait.
       if (_isRefreshing) {
-        await _refreshCompleter?.future;
+        await _refreshCompleter!.future;
+      } else {
+        _isRefreshing = true;
+        _refreshCompleter = Completer<void>();
 
-        final retryResponse = await _retry(err.requestOptions);
+        await _refreshToken();
 
-        return handler.resolve(retryResponse);
+        _refreshCompleter!.complete();
       }
 
-      _isRefreshing = true;
-      _refreshCompleter = Completer<void>();
+      final response = await _retry(err.requestOptions);
 
-      await _refreshToken();
-
-      _refreshCompleter?.complete();
-
-      final retryResponse = await _retry(err.requestOptions);
-
-      handler.resolve(retryResponse);
+      return handler.resolve(response);
     } catch (e) {
-      _refreshCompleter?.completeError(e);
+      if (!(_refreshCompleter?.isCompleted ?? true)) {
+        _refreshCompleter!.completeError(e);
+      }
 
-      await SecureStorage.clear();
-
-      handler.next(err);
-
-      // Navigate to Login screen here
+      return handler.next(err);
     } finally {
       _isRefreshing = false;
     }
@@ -77,23 +74,32 @@ class ApiInterceptor extends Interceptor {
   Future<void> _refreshToken() async {
     final refreshToken = await SecureStorage.getRefreshToken();
 
-    if (refreshToken == null) {
-      throw Exception("No refresh token");
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw Exception("Refresh token missing");
     }
 
     final response = await dio.get(
       "/auth/getAccessToken",
-      options: Options(headers: {"Authorization": "Bearer $refreshToken"}),
+      options: Options(
+        extra: {"skipAuth": true},
+        headers: {"Authorization": "Bearer $refreshToken"},
+      ),
     );
 
     final data = response.data;
+    print("CURRENT STATE OF DATA:${data["data"]["token"]}");
+    final newAccessToken = data["data"]["token"];
+    
+    
+    if (newAccessToken == null) {
+      throw Exception("No access token returned");
+    }
 
-    await SecureStorage.saveTokens(
-      accessToken: data["token"],
-    );
+    await SecureStorage.saveTokens(accessToken: newAccessToken);
+    print("SAVED TOKEN: ${await SecureStorage.getAccessToken()}");
   }
 
-  Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
+  Future<Response> _retry(RequestOptions requestOptions) async {
     final accessToken = await SecureStorage.getAccessToken();
 
     final options = Options(
@@ -104,16 +110,9 @@ class ApiInterceptor extends Interceptor {
       },
       responseType: requestOptions.responseType,
       contentType: requestOptions.contentType,
-      followRedirects: requestOptions.followRedirects,
-      receiveDataWhenStatusError: requestOptions.receiveDataWhenStatusError,
-      extra: requestOptions.extra,
-      listFormat: requestOptions.listFormat,
-      maxRedirects: requestOptions.maxRedirects,
       receiveTimeout: requestOptions.receiveTimeout,
-      requestEncoder: requestOptions.requestEncoder,
-      responseDecoder: requestOptions.responseDecoder,
       sendTimeout: requestOptions.sendTimeout,
-      validateStatus: requestOptions.validateStatus,
+      extra: requestOptions.extra,
     );
 
     return dio.request(

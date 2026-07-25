@@ -14,6 +14,7 @@ class Task {
   final List<dynamic> comments;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isEdited;
   final int version;
 
   Task({
@@ -26,6 +27,7 @@ class Task {
     required this.createdBy,
     required this.dueDate,
     required this.tags,
+    required this.isEdited,
     required this.isDeleted,
     required this.comments,
     required this.createdAt,
@@ -41,6 +43,7 @@ class Task {
       status: json["status"],
       priority: json["priority"],
       assignedTo: List<dynamic>.from(json["assignedTo"]),
+      isEdited: json["isEdited"],
       createdBy: User.fromJson(json["createdBy"]),
       dueDate: DateTime.parse(json["dueDate"]),
       tags: List<dynamic>.from(json["tags"]),
