@@ -12,6 +12,10 @@ class SecureStorage {
     return await _storage.read(key: "refreshToken");
   }
 
+  static Future<String?> getEmpId() async {
+    return await _storage.read(key: "empId");
+  }
+
   static Future<void> saveTokens({required String accessToken}) async {
     await _storage.write(key: "accessToken", value: accessToken);
   }

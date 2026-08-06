@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
 import 'package:tic_task_app/dto/Task.dart';
+import 'package:tic_task_app/route/EditStatusPage.dart';
+import 'package:tic_task_app/route/pages/AddTask.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/FilterCard.dart';
+import 'package:tic_task_app/shared/SecureStorage.dart';
 import 'package:tic_task_app/shared/TaskCard.dart';
 
 class StatusReports extends ConsumerStatefulWidget {
@@ -17,57 +21,7 @@ class StatusReports extends ConsumerStatefulWidget {
 class _StatusReportsState extends ConsumerState<StatusReports> {
   DateTime? startDate;
   DateTime? endDate;
-
-  Future<void> _showEditDialog(Task task) async {
-    final titleController = TextEditingController(text: task.title);
-    final descriptionController = TextEditingController(text: task.description);
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Edit Task"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: "Title"),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descriptionController,
-                maxLines: 5,
-                decoration: const InputDecoration(labelText: "Description"),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await ref
-                  .read(taskProvider.notifier)
-                  .editTask(
-                    task.id,
-                    titleController.text.trim(),
-                    descriptionController.text.trim(),
-                  );
-
-              Navigator.pop(context);
-
-              ref.read(taskProvider.notifier).fetchTasks();
-            },
-            child: const Text("Save"),
-          ),
-        ],
-      ),
-    );
-  }
+  String? currentEmpId;
 
   @override
   void initState() {
@@ -95,6 +49,13 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
         },
       );
     });
+
+    _loadEmpId();
+  }
+
+  Future<void> _loadEmpId() async {
+    currentEmpId = await SecureStorage.getEmpId();
+    setState(() {});
   }
 
   @override
@@ -194,18 +155,37 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
                 itemCount: response.data.tasks.length,
                 itemBuilder: (_, index) {
                   final task = response.data.tasks[index];
-                  print(task);
+                  final localDate = task.dueDate.toLocal();
+                  final date = DateFormat(
+                    "MMM dd, yyyy hh:mm a",
+                  ).format(localDate);
+                  print(task.createdBy.id);
+                  print(currentEmpId);
 
                   return TaskCard(
                     taskName: task.title,
                     description: task.description,
-                    dueDate: task.dueDate,
+                    dueDate: date,
                     isEdited: task.isEdited,
                     status: task.status,
                     fullName: task.createdBy.fullName,
                     userId: task.createdBy.employeeId,
                     taskId: task.id,
-                    onEdit: () => _showEditDialog(task),
+                    isEditable: task.createdBy.id == currentEmpId,
+                    onEdit: () async {
+                      final updated = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditTaskPage(task: task),
+                        ),
+                      );
+
+                      if (updated == true) {
+                        ref
+                            .read(taskProvider.notifier)
+                            .fetchTasks(startDate: startDate, endDate: endDate);
+                      }
+                    },
                   );
                 },
               ),

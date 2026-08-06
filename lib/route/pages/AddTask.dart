@@ -1,42 +1,82 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
+import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
+import 'package:tic_task_app/dto/Task.dart';
+import 'package:tic_task_app/dto/TaskLocal.dart';
+import 'package:tic_task_app/shared/AnimatedSideBorderContainer.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
+import 'package:uuid/uuid.dart';
 
 class AddTask extends ConsumerStatefulWidget {
-  const AddTask({Key? key}) : super(key: key);
+  const AddTask({Key? key, this.task}) : super(key: key);
+  final Task? task;
+
+  bool get isEdit => task != null;
 
   @override
   ConsumerState<AddTask> createState() => _AddTaskState();
 }
 
 class _AddTaskState extends ConsumerState<AddTask> {
+  late final dir;
+  late final isar;
+
   final SpeechToText _speech = SpeechToText();
 
   bool _isListening = false;
   final _formKey = GlobalKey<FormState>();
-  String _currentTranscript = "";
-  String _fullTranscript = "";
+  String _confirmedText = ""; // Finalized speech
+  String _liveText = ""; // Current partial speech
+  String _displayText = "";
+  String _translatedText = "";
+  // confirmed + live
 
-  String _locale = "bn_in";
+  String _locale = "bn_IN";
   bool _isSubmitting = false;
   bool _submittedToday = false;
+  bool _showTranslateButton = false;
+  bool _isTranslating = false;
+  bool _showTranslation = false;
+
+  String _selectedStatus = "Todo";
+
+  final List<String> _statuses = [
+    "Todo",
+    "In Progress",
+    "Completed",
+    "Cancelled",
+  ];
 
   @override
   void initState() {
     super.initState();
+
     _controller.addListener(() {
       if (!_isListening) {
-        _fullTranscript = _controller.text;
+        print("Controller text changed: ${_controller.text}");
+        _confirmedText = _controller.text;
+        setState(() {});
       }
     });
 
-    _loadSubmissionStatus();
+    if (widget.isEdit) {
+      _controller.text = widget.task!.description;
+      _jobNumber.text = widget.task!.title ?? "";
+      _liveText = widget.task!.description;
+      _selectedStatus = widget.task!.status;
+
+      _submittedToday = false; // editing shouldn't be blocked
+    } else {
+      _loadSubmissionStatus();
+    }
 
     _initSpeech();
   }
@@ -74,7 +114,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
       30,
     );
 
-    return now.isAfter(start) && now.isBefore(end);
+    // return now.isAfter(start) && now.isBefore(end);
+    return true;
   }
 
   Future<void> _loadSubmissionStatus() async {
@@ -93,33 +134,109 @@ class _AddTaskState extends ConsumerState<AddTask> {
   }
 
   Future<void> _submit() async {
-    if (!_isSubmissionWindowOpen) {
-      AppOverlaySnackbar.showError(
-        context,
-        message: "Tasks can only be submitted between 4:00 PM and 11:30 PM.",
-      );
-      return;
-    }
+    if (!widget.isEdit) {
+      if (!_isSubmissionWindowOpen) {
+        AppOverlaySnackbar.showError(
+          context,
+          message: "Tasks can only be submitted between 4 PM and 11:30 PM.",
+        );
+        return;
+      }
 
-    if (_submittedToday) return;
+      if (_submittedToday) return;
+    }
 
     if (_controller.text.trim().isEmpty) {
       AppOverlaySnackbar.showError(context, message: "Please enter some text");
       return;
     }
 
+    if (_jobNumber.text.trim().isEmpty) {
+      AppOverlaySnackbar.showError(
+        context,
+        message: "Please enter some Job Number",
+      );
+      return;
+    }
+
     try {
-      await ref
-          .read(authProvider.notifier)
-          .createTask(_controller.text, _jobNumber.text);
+      if (widget.isEdit) {
+        final localTask = await isar.taskLocals
+            .filter()
+            .taskIdEqualTo(widget.task!.id)
+            .findFirst();
+
+        if (localTask == null) {
+          final task = TaskLocal()
+            ..taskId = widget.task!.id
+            ..title = _jobNumber.text
+            ..description = _controller.text
+            ..createdAt = DateTime.now()
+            ..status = _selectedStatus
+            ..isEdited = true
+            ..synced = false;
+
+          await isar.writeTxn(() async {
+            await isar.taskLocals.put(task);
+          });
+        } else {
+          await isar.writeTxn(() async {
+            localTask
+              ..title = _jobNumber.text
+              ..description = _controller.text
+              ..status = _selectedStatus
+              ..isEdited = true
+              ..synced = false;
+
+            await isar.taskLocals.put(localTask);
+          });
+        }
+
+        // await ref
+        //     .read(taskProvider.notifier)
+        //     .editTask(
+        //       widget.task!.id,
+        //       _jobNumber.text,
+        //       _locale == "bn_IN" ? _translatedText : _controller.text,
+        //       _selectedStatus,
+        //     );
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      } else {
+        const uuid = Uuid();
+
+        TaskLocal task = TaskLocal()
+          ..taskId = uuid.v4().toString()
+          ..title = _jobNumber.text
+          ..description = _controller.text
+          ..createdAt = DateTime.now()
+          ..status = _selectedStatus
+          ..translatedDescription = null
+          ..isEdited = false
+          ..synced = false;
+
+        await isar.writeTxn(() async {
+          await isar.taskLocals.put(task);
+        });
+      }
+
       SecureStorage.saveLastSubmittedDate();
 
       AppOverlaySnackbar.showSuccess(
         context,
-        message: "Task created successfully",
+        message: widget.isEdit
+            ? "Task updated successfully"
+            : "Task created successfully",
       );
       _loadSubmissionStatus();
       _controller.clear();
+      _jobNumber.clear();
+
+      setState(() {
+        _translatedText = "";
+        _isTranslating = false;
+      });
     } catch (e) {
       print(e);
       final parts = e.toString().split(":");
@@ -143,8 +260,14 @@ class _AddTaskState extends ConsumerState<AddTask> {
     );
   }
 
+  bool alreadyProcessed = false;
   Future<void> _startListening() async {
     if (_speech.isListening) _stopListening();
+
+    setState(() {
+      _translatedText = "";
+      _liveText = "";
+    });
 
     await _speech.listen(
       localeId: _locale, // or en_IN
@@ -154,22 +277,29 @@ class _AddTaskState extends ConsumerState<AddTask> {
       listenMode: ListenMode.dictation,
       partialResults: true,
       onResult: (result) {
-        _currentTranscript = result.recognizedWords;
-
         if (result.finalResult) {
-          _fullTranscript = _fullTranscript.isEmpty
-              ? _currentTranscript
-              : "$_fullTranscript $_currentTranscript";
-
-          _currentTranscript = "";
+          return;
         }
 
-        _controller.text = _currentTranscript.isEmpty
-            ? _fullTranscript
-            : "$_fullTranscript $_currentTranscript";
+        print("LIVE TEXT: ${result.recognizedWords}");
 
-        _controller.selection = TextSelection.fromPosition(
-          TextPosition(offset: _controller.text.length),
+        if (result.recognizedWords.trim().isEmpty && !alreadyProcessed) {
+          alreadyProcessed = true;
+          _confirmedText = _confirmedText.isEmpty
+              ? _liveText
+              : "$_confirmedText $_liveText";
+        } else {
+          alreadyProcessed = false;
+          _liveText = result.recognizedWords;
+        }
+
+        print("CONFIRMED TEXT $_confirmedText");
+
+        _displayText = _confirmedText;
+
+        _controller.value = TextEditingValue(
+          text: _displayText + _liveText,
+          selection: TextSelection.collapsed(offset: _displayText.length),
         );
 
         setState(() {});
@@ -185,10 +315,49 @@ class _AddTaskState extends ConsumerState<AddTask> {
     await Future.delayed(const Duration(seconds: 1));
 
     await _speech.stop();
+    if (_liveText.trim().isNotEmpty) {
+      _confirmedText = _confirmedText.isEmpty
+          ? _liveText
+          : "$_confirmedText $_liveText";
+    }
 
+    _liveText = "";
+    _controller.text = _confirmedText;
     setState(() {
       _isListening = false;
+      _showTranslateButton =
+          _locale == "bn_IN" && _controller.text.trim().isNotEmpty;
     });
+  }
+
+  Future<void> _translate() async {
+    setState(() {
+      _isTranslating = true;
+      _showTranslation = true;
+    });
+
+    print(_controller.text);
+    try {
+      final response = await Dio().post(
+        "http://3.106.193.5:5000/translate",
+        data: {
+          "q": _controller.text,
+          "source": "bn",
+          "target": "en",
+          "format": "text",
+        },
+      );
+
+      print(response);
+
+      setState(() {
+        _translatedText = response.data["translatedText"];
+      });
+    } finally {
+      setState(() {
+        _isTranslating = false;
+      });
+    }
   }
 
   @override
@@ -235,8 +404,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
                       color: Color(0xff0F172A),
                     ),
                   ),
-                  const Text(
-                    "Add new task status",
+                  Text(
+                    widget.isEdit ? "Update Task Status" : "Submit Status",
                     style: TextStyle(fontSize: 15, color: Color(0xff0F172A)),
                   ),
                 ],
@@ -286,9 +455,10 @@ class _AddTaskState extends ConsumerState<AddTask> {
 
                     setState(() {
                       _locale = state ? "bn_IN" : "en_IN";
-                      _fullTranscript = "";
-                      _currentTranscript = "";
-                      _controller.clear();
+                      _liveText = "";
+                      _confirmedText = "";
+                      _displayText = "";
+                      if (!widget.isEdit) _controller.clear();
                     });
                   },
                 ),
@@ -309,6 +479,32 @@ class _AddTaskState extends ConsumerState<AddTask> {
               hintText: "Speak something...",
               border: OutlineInputBorder(),
             ),
+          ),
+          SizedBox(height: 15),
+          Row(
+            children: [
+              Spacer(),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _liveText = "";
+                    _confirmedText = "";
+                    _displayText = "";
+                    _translatedText = "";
+                    _controller.clear();
+                  });
+                },
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _isListening ? Colors.red : Colors.blue,
+                  ),
+                  child: Icon(Icons.refresh, color: Colors.white),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 15),
           Text(
@@ -348,11 +544,106 @@ class _AddTaskState extends ConsumerState<AddTask> {
             ),
           ),
           SizedBox(height: 10),
-          Text(
-            "Tap to record & convert voice to text",
-            style: TextStyle(fontSize: 13),
+
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+            height: _showTranslateButton ? 55 : 0,
+            width: double.infinity,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: _showTranslateButton ? 1 : 0,
+              child: ElevatedButton(
+                onPressed: _isSubmissionWindowOpen
+                    ? _isTranslating
+                          ? null
+                          : _translate
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isTranslating
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blueAccent,
+                          ),
+                        ),
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.translate),
+                          SizedBox(width: 8),
+                          Text("Translate to English"),
+                        ],
+                      ),
+              ),
+            ),
           ),
+          const SizedBox(height: 20),
+          AnimatedSlide(
+            duration: const Duration(milliseconds: 400),
+            offset: !_isTranslating && _translatedText.isNotEmpty
+                ? Offset.zero
+                : const Offset(0, .25),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+              child: !_isTranslating && _translatedText.isNotEmpty
+                  ? AnimatedSideBorderContainer(
+                      expanded: true,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(_translatedText),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+
           SizedBox(height: 30),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Status",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedStatus,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.flag_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: _statuses
+                    .map(
+                      (status) =>
+                          DropdownMenuItem(value: status, child: Text(status)),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedStatus = value;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -388,7 +679,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
                         ? null
                         : _submit
                   : null,
-              label: const Text("Submit Status"),
+              label: Text(widget.isEdit ? "Update Task" : "Submit Status"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,

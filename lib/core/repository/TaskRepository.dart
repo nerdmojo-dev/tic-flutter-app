@@ -35,10 +35,10 @@ class Taskrepository {
     }
   }
 
-  Future<void> editTask(String taskId, String title, String description) async {
+  Future<void> editTask(String taskId, String title, String description,String status) async {
     await dio.put(
       "/tasks/editTask/$taskId",
-      data: {"title": title, "description": description},
+      data: {"title": title, "description": description,"status":status},
     );
   }
 }

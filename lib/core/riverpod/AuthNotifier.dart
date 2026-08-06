@@ -12,6 +12,7 @@ import 'package:tic_task_app/dto/TaskResponse.dart';
 import 'package:tic_task_app/dto/TaskResponseDto.dart';
 import 'package:tic_task_app/dto/User.dart';
 import 'package:tic_task_app/route/ChangePassword.dart';
+import 'package:tic_task_app/shared/SecureStorage.dart';
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, User?>(
   AuthNotifier.new,
@@ -76,6 +77,9 @@ class AuthNotifier extends AsyncNotifier<User?> {
         key: "user",
         value: jsonEncode(authData.user.toJson()),
       );
+
+      await _storage.write(key: "empId", value: authData.user.id);
+
       print(authData.user.toJson());
       return authData.user;
     });
@@ -95,7 +99,6 @@ class AuthNotifier extends AsyncNotifier<User?> {
         currentPassword: currentPassword,
         newPassword: newPassword,
       );
-      
 
       final updatedUser = currentUser.copyWith(isFirstLogin: false);
 
@@ -103,15 +106,13 @@ class AuthNotifier extends AsyncNotifier<User?> {
         key: "user",
         value: jsonEncode(updatedUser.toJson()),
       );
-      Future.delayed(Duration(seconds: 2),(){
+      Future.delayed(Duration(seconds: 2), () {
         state = AsyncData(currentUser.copyWith(isFirstLogin: false));
       });
     } on Exception catch (e) {
       throw e;
     }
   }
-
-
 
   Future<TaskResponseDto> getTasks({
     required String startDate,
@@ -123,8 +124,10 @@ class AuthNotifier extends AsyncNotifier<User?> {
       if (currentUser == null) {
         throw Exception("No logged in user");
       }
-      TaskResponseDto response = await _repository.getTasksByDate(startDate: startDate, endDate: endDate);
-      
+      TaskResponseDto response = await _repository.getTasksByDate(
+        startDate: startDate,
+        endDate: endDate,
+      );
 
       return response;
     } on Exception catch (e) {
@@ -132,7 +135,11 @@ class AuthNotifier extends AsyncNotifier<User?> {
     }
   }
 
-  Future<void> createTask(String text, String jobNumber) async {
+  Future<void> createTask(
+    String text,
+    String jobNumber,
+    String selectedStatus,
+  ) async {
     final user = state.value;
     if (user == null) {
       throw Exception("No logged in user");
@@ -141,6 +148,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
     final CreateTaskResponse response = await _repository.submitTranscript(
       jobNumber,
       text,
+      selectedStatus,
     );
 
     if (response.hasError) {
@@ -150,8 +158,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+    await _storage.delete(key: "last_submit_date");
     state = const AsyncData(null);
   }
-
-  
 }

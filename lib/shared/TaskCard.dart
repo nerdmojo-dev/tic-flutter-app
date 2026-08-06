@@ -9,6 +9,7 @@ class TaskCard extends StatelessWidget {
     required this.description,
     required this.isEdited,
     required this.dueDate,
+    required this.isEditable,
     this.fullName,
     this.userId,
     required this.taskId,
@@ -18,9 +19,10 @@ class TaskCard extends StatelessWidget {
   final String taskId;
   final bool isEdited;
   final String status;
+  final bool isEditable;
   final String taskName;
   final String description;
-  final DateTime dueDate;
+  final String dueDate;
   final String? fullName;
   final String? userId;
 
@@ -43,11 +45,43 @@ class TaskCard extends StatelessWidget {
       30,
     );
 
-    return now.isAfter(start) && now.isBefore(end);
+    // return now.isAfter(start) && now.isBefore(end);
+    return true;
+    
   }
 
   @override
   Widget build(BuildContext context) {
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+    switch (status) {
+      case "Completed":
+        bgColor = Colors.green.shade100;
+        textColor = Colors.green.shade700;
+        icon = Icons.check_circle;
+        break;
+
+      case "In Progress":
+        bgColor = Colors.orange.shade100;
+        textColor = Colors.orange.shade700;
+        icon = Icons.autorenew;
+        break;
+
+      case "Cancelled":
+        bgColor = Colors.red.shade100;
+        textColor = Colors.red.shade700;
+        icon = Icons.cancel;
+        break;
+
+      case "Todo":
+      default:
+        bgColor = Colors.blue.shade100;
+        textColor = Colors.blue.shade700;
+        icon = Icons.schedule;
+        break;
+    }
+    print("ISEDITABLE:$isEditable");
     return Card(
       color: Colors.white,
       shadowColor: Colors.transparent,
@@ -70,22 +104,18 @@ class TaskCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade100,
+                    color: bgColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.autorenew,
-                        size: 16,
-                        color: Colors.green.shade700,
-                      ),
+                      Icon(icon, size: 16, color: textColor),
                       const SizedBox(width: 6),
                       Text(
                         status,
                         style: TextStyle(
-                          color: Colors.green.shade700,
+                          color: textColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -114,7 +144,10 @@ class TaskCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        userId!.toUpperCase(),
+                        userId!.length > 7
+                            ? "...${userId!.substring(userId!.length - 7)}"
+                            : userId!,
+
                         style: TextStyle(
                           color: Colors.blue.shade700,
                           fontWeight: FontWeight.w600,
@@ -126,14 +159,24 @@ class TaskCard extends StatelessWidget {
                 ),
 
                 const Spacer(),
-                !isEdited
-                    ? _isSubmissionWindowOpen
-                          ? OutlinedButton.icon(
-                              onPressed: onEdit,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: const Text("Edit"),
-                            ):SizedBox()
-                    : const Text("Edited"),
+                isEditable
+                    ? !isEdited
+                          ? _isSubmissionWindowOpen
+                                ? Transform.scale(
+                                    scale: 0.8, // 80% of original size
+                                    alignment: Alignment.centerRight,
+                                    child: OutlinedButton.icon(
+                                      onPressed: onEdit,
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        size: 16,
+                                      ),
+                                      label: const Text("Edit"),
+                                    ),
+                                  )
+                                : const SizedBox()
+                          : const Text("Edited")
+                    : const SizedBox(),
               ],
             ),
 
@@ -161,10 +204,7 @@ class TaskCard extends StatelessWidget {
                   color: Colors.grey,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  DateFormat("MMM dd, yyyy").format(dueDate),
-                  style: const TextStyle(color: Colors.grey),
-                ),
+                Text(dueDate, style: const TextStyle(color: Colors.grey)),
 
                 const SizedBox(width: 10),
 

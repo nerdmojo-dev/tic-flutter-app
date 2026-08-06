@@ -125,6 +125,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       }
                       return null;
                     },
+                    onChanged: (value) {
+                      final lower = value.toLowerCase();
+
+                      if (value != lower) {
+                        employeeIdController.value = TextEditingValue(
+                          text: lower,
+                          selection: TextSelection.collapsed(
+                            offset: lower.length,
+                          ),
+                        );
+                      }
+                    },
                     decoration: InputDecoration(
                       hintText: "e.g. EMP1023",
                       prefixIcon: const Icon(Icons.badge_rounded),
@@ -170,12 +182,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 2),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text("Forgot Password"),
+                              content: const Text(
+                                "Please contact your system administrator to reset your password.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("OK"),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                         child: const Text(
                           "Forgot Password?",
                           style: TextStyle(color: AppColors.primary),

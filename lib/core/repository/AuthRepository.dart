@@ -84,12 +84,9 @@ class AuthRepository {
   Future<CreateTaskResponse> submitTranscript(
     String userFullName,
     String text,
+    String status
   ) async {
     try {
-      final currDateTIme = DateTime.now();
-      final formattedDateTime = DateFormat(
-        'dd, MMM yyyy',
-      ).format(DateTime.now());
 
       print("URL: ${dio.options.baseUrl}/tasks/addtask");
       print("Method: POST");
@@ -98,10 +95,11 @@ class AuthRepository {
       final response = await dio.post(
         "/tasks/addtask", // Replace with your endpoint
         data: {
-          "title": "$userFullName - $formattedDateTime",
+          "title": "$userFullName",
           "description": text,
           "assignedTo": [],
-          "dueDate": currDateTIme.toUtc().toIso8601String(),
+          "dueDate": DateTime.now().toIso8601String(),
+          "status":status
         },
       );
 
