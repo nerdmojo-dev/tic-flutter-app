@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/route/ChangePassword.dart';
 import 'package:tic_task_app/route/LoginScreen.dart';
@@ -81,7 +82,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: Column(
                     children: [
                       Text(
-                        user?.fullName.toString()??"",
+                        user?.fullName.toString() ?? "",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -89,7 +90,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        user?.employeeId.toUpperCase()??"",
+                        user?.employeeId.toUpperCase() ?? "",
                         style: TextStyle(
                           color: AppColors.primary,
                           fontSize: 15,
@@ -112,7 +113,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ChangePasswordScreen(popOnSuccess: true,),
+                      builder: (context) =>
+                          const ChangePasswordScreen(popOnSuccess: true),
                     ),
                   );
                 },
@@ -123,7 +125,51 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 title: "Logout",
                 isDanger: true,
                 onTap: () async {
-                  // Logout
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange,
+                            ),
+                            SizedBox(width: 8),
+                            Text("Confirm Logout"),
+                          ],
+                        ),
+                        content: const Text(
+                          "All your pending unsynced tasks will be permanently deleted if you log out.\n\n"
+                          "Please ensure your tasks are synced before continuing.\n\n"
+                          "Do you still want to log out?",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Cancel"),
+                          ),
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Logout"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (shouldLogout != true) return;
+
+                  final db = ref.read(databaseProvider);
+                  await db.delete(db.taskLocals).go();
+
                   await ref.read(authProvider.notifier).logout();
                 },
               ),

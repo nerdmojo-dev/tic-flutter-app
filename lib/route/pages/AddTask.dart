@@ -1,17 +1,21 @@
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:tic_task_app/core/dio/dio_client.dart';
+import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tic_task_app/dto/Task.dart';
-import 'package:tic_task_app/dto/TaskLocal.dart';
+import 'package:tic_task_app/database/app_database.dart';
 import 'package:tic_task_app/shared/AnimatedSideBorderContainer.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
+import 'package:tic_task_app/shared/ConnectivityService.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 import 'package:uuid/uuid.dart';
 
@@ -26,8 +30,7 @@ class AddTask extends ConsumerStatefulWidget {
 }
 
 class _AddTaskState extends ConsumerState<AddTask> {
-  late final dir;
-  late final isar;
+  late final db;
 
   final SpeechToText _speech = SpeechToText();
 
@@ -58,7 +61,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
   @override
   void initState() {
     super.initState();
-
+    // __initIsar();
     _controller.addListener(() {
       if (!_isListening) {
         print("Controller text changed: ${_controller.text}");
@@ -114,26 +117,32 @@ class _AddTaskState extends ConsumerState<AddTask> {
       30,
     );
 
-    // return now.isAfter(start) && now.isBefore(end);
-    return true;
+    return now.isAfter(start) && now.isBefore(end);
+    // return true;
   }
 
   Future<void> _loadSubmissionStatus() async {
     setState(() {
-      _isSubmitting = true;
+      _isSubmitting = false;
     });
     final submitted = await hasSubmittedToday();
     print(submitted);
 
-    if (mounted) {
+    if (mounted && submitted) {
       setState(() {
         _submittedToday = submitted;
-        if (submitted) _isSubmitting = false;
+        // _submittedToday = false; // allow multiple submissions for testing
+        _isSubmitting = false;
       });
     }
   }
 
   Future<void> _submit() async {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    String id = await SecureStorage.getuserId() ?? "646313";
     if (!widget.isEdit) {
       if (!_isSubmissionWindowOpen) {
         AppOverlaySnackbar.showError(
@@ -158,67 +167,104 @@ class _AddTaskState extends ConsumerState<AddTask> {
       );
       return;
     }
+    print("*****************SUBMITTING*****************");
 
     try {
+      if (_locale == "bn_IN" && _translatedText.isEmpty) await _translate();
+    } catch (e) {}
+
+    await Future.delayed(const Duration(seconds: 4));
+
+    try {
+      print(
+        "[APPLICATION] STARTING CHECKING INIT ${widget.task != null ? widget.task!.id : null}",
+      );
       if (widget.isEdit) {
-        final localTask = await isar.taskLocals
-            .filter()
-            .taskIdEqualTo(widget.task!.id)
-            .findFirst();
+        final taskId = widget.task!.id;
 
-        if (localTask == null) {
-          final task = TaskLocal()
-            ..taskId = widget.task!.id
-            ..title = _jobNumber.text
-            ..description = _controller.text
-            ..createdAt = DateTime.now()
-            ..status = _selectedStatus
-            ..isEdited = true
-            ..synced = false;
+        final result = await db
+            .customSelect(
+              'SELECT * FROM task_locals WHERE task_id = ?',
+              variables: [Variable(taskId)],
+            )
+            .get();
 
-          await isar.writeTxn(() async {
-            await isar.taskLocals.put(task);
-          });
+        print("[APPLICATION] STARTING CHECKING");
+        print("[APPLICATION] LOCAL TASKS: $result");
+
+        if (result.isEmpty) {
+          print("[APPLICATION] ADDED UPDATE TASK");
+
+          await db
+              .into(db.taskLocals)
+              .insert(
+                TaskLocalsCompanion.insert(
+                  taskId: taskId,
+                  title: _jobNumber.text,
+                  isEdited: taskId.contains("-") ? Value(false) : Value(true),
+                  description: _locale == "bn_IN"
+                      ? (_translatedText.trim().isNotEmpty
+                            ? _translatedText
+                            : _controller.text)
+                      : _controller.text,
+                  status: _selectedStatus,
+                  createdAt: DateTime.now(),
+                  createdBy: id,
+                ),
+              );
         } else {
-          await isar.writeTxn(() async {
-            localTask
-              ..title = _jobNumber.text
-              ..description = _controller.text
-              ..status = _selectedStatus
-              ..isEdited = true
-              ..synced = false;
+          print("[APPLICATION] FOUND LOCAL TASK AND UPDATED");
 
-            await isar.taskLocals.put(localTask);
-          });
+          await db.customStatement(
+            '''
+  UPDATE task_locals
+  SET
+    synced = ?,
+    is_edited = ?,
+    description = ?,
+    title = ?,
+    status = ?,
+    created_by = ?
+  WHERE task_id = ?
+  ''',
+            [
+              false,
+              taskId.contains("-") ? false : true,
+              _locale == "bn_IN"
+                  ? (_translatedText.trim().isNotEmpty
+                        ? _translatedText
+                        : _controller.text)
+                  : _controller.text,
+              _jobNumber.text,
+              _selectedStatus,
+              id,
+              taskId,
+            ],
+          );
         }
 
-        // await ref
-        //     .read(taskProvider.notifier)
-        //     .editTask(
-        //       widget.task!.id,
-        //       _jobNumber.text,
-        //       _locale == "bn_IN" ? _translatedText : _controller.text,
-        //       _selectedStatus,
-        //     );
         if (mounted) {
           Navigator.pop(context, true);
         }
       } else {
-        const uuid = Uuid();
+        print("[APPLICATION] CREATED LOCAL TASK");
 
-        TaskLocal task = TaskLocal()
-          ..taskId = uuid.v4().toString()
-          ..title = _jobNumber.text
-          ..description = _controller.text
-          ..createdAt = DateTime.now()
-          ..status = _selectedStatus
-          ..translatedDescription = null
-          ..isEdited = false
-          ..synced = false;
-
-        await isar.writeTxn(() async {
-          await isar.taskLocals.put(task);
-        });
+        await db
+            .into(db.taskLocals)
+            .insert(
+              TaskLocalsCompanion.insert(
+                taskId: const Uuid().v4(),
+                title: _jobNumber.text,
+                description: _locale == "bn_IN"
+                    ? (_translatedText.trim().isNotEmpty
+                          ? _translatedText
+                          : _controller.text)
+                    : _controller.text,
+                status: _selectedStatus,
+                createdAt: DateTime.now(),
+                createdBy: id,
+              ),
+            );
       }
 
       SecureStorage.saveLastSubmittedDate();
@@ -237,8 +283,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
         _translatedText = "";
         _isTranslating = false;
       });
-    } catch (e) {
-      print(e);
+    } catch (e, stacktrace) {
+      print("$e");
+      print(stacktrace);
       final parts = e.toString().split(":");
 
       final message = parts.length > 1
@@ -247,6 +294,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
 
       AppOverlaySnackbar.showError(context, message: message);
     } finally {
+      print("*****************SUBMITTING*****************");
+
       setState(() {
         _isSubmitting = false;
       });
@@ -254,6 +303,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
   }
 
   Future<void> _initSpeech() async {
+    db = ref.read(databaseProvider);
+
     await _speech.initialize(
       onStatus: (status) => print(status),
       onError: (error) => print(error),
@@ -262,6 +313,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
 
   bool alreadyProcessed = false;
   Future<void> _startListening() async {
+    debugPrint("[APPLICATION] LOCALE : $_locale");
     if (_speech.isListening) _stopListening();
 
     setState(() {
@@ -331,29 +383,26 @@ class _AddTaskState extends ConsumerState<AddTask> {
   }
 
   Future<void> _translate() async {
+    print("****************translating******************");
+    print("[TRANSLATING] ${_controller.text}");
     setState(() {
       _isTranslating = true;
       _showTranslation = true;
     });
 
-    print(_controller.text);
     try {
       final response = await Dio().post(
-        "http://3.106.193.5:5000/translate",
-        data: {
-          "q": _controller.text,
-          "source": "bn",
-          "target": "en",
-          "format": "text",
-        },
+        "http://3.26.191.191:8000/translate",
+        data: {"text": _controller.text},
       );
 
-      print(response);
+      print("[APPLICATION] TRANSLATED : $response");
 
       setState(() {
-        _translatedText = response.data["translatedText"];
+        _translatedText = response.data["translated"];
       });
     } finally {
+      print("****************translating******************");
       setState(() {
         _isTranslating = false;
       });
@@ -458,6 +507,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
                       _liveText = "";
                       _confirmedText = "";
                       _displayText = "";
+                      _showTranslateButton =
+                          _locale == "bn_IN" &&
+                          _controller.text.trim().isNotEmpty;
                       if (!widget.isEdit) _controller.clear();
                     });
                   },
@@ -491,6 +543,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
                     _confirmedText = "";
                     _displayText = "";
                     _translatedText = "";
+                    _showTranslateButton =
+                        _locale == "bn_IN" &&
+                        _controller.text.trim().isNotEmpty;
                     _controller.clear();
                   });
                 },
@@ -677,14 +732,37 @@ class _AddTaskState extends ConsumerState<AddTask> {
               onPressed: _isSubmissionWindowOpen
                   ? _submittedToday
                         ? null
+                        : _isSubmitting
+                        ? null
                         : _submit
                   : null,
-              label: Text(widget.isEdit ? "Update Task" : "Submit Status"),
+              icon: _isSubmitting
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : null,
+              label: Text(
+                _isSubmitting
+                    ? "Submitting..."
+                    : widget.isEdit
+                    ? "Update Task"
+                    : "Submit Status",
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.blue,
+                disabledForegroundColor: Colors.white,
                 elevation: 3,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),

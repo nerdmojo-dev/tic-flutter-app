@@ -57,6 +57,8 @@ class AuthNotifier extends AsyncNotifier<User?> {
       final AuthData authData = response.data;
 
       await _storage.write(key: "accessToken", value: authData.token);
+      await _storage.write(key: "employeeId", value: authData.user.employeeId);
+      await _storage.write(key: "fullName", value: authData.user.fullName);
 
       await _storage.write(key: "refreshToken", value: authData.refreshToken);
       await _storage.write(

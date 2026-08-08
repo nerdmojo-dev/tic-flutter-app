@@ -25,6 +25,22 @@ class TaskResponseDto {
     );
   }
 
+  TaskResponseDto copyWith({
+  bool? hasError,
+  String? message,
+  List<String>? errors,
+  DateTime? timestamp,
+  TaskDataDto? data,
+}) {
+  return TaskResponseDto(
+    hasError: hasError ?? this.hasError,
+    message: message ?? this.message,
+    errors: errors ?? this.errors,
+    timestamp: timestamp ?? this.timestamp,
+    data: data ?? this.data,
+  );
+}
+
   // Map<String, dynamic> toJson() => {
   //       "hasError": hasError,
   //       "message": message,

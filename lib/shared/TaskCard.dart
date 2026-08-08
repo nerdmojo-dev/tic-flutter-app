@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:tic_task_app/shared/GlowingGreenDot.dart';
 
 class TaskCard extends StatelessWidget {
   const TaskCard({
@@ -10,6 +11,7 @@ class TaskCard extends StatelessWidget {
     required this.isEdited,
     required this.dueDate,
     required this.isEditable,
+    required this.isSynced,
     this.fullName,
     this.userId,
     required this.taskId,
@@ -20,35 +22,12 @@ class TaskCard extends StatelessWidget {
   final bool isEdited;
   final String status;
   final bool isEditable;
+  final bool isSynced;
   final String taskName;
   final String description;
   final String dueDate;
   final String? fullName;
   final String? userId;
-
-  bool get _isSubmissionWindowOpen {
-    final now = DateTime.now();
-
-    final start = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      16, // 4 PM
-      0,
-    );
-
-    final end = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      23, // 11:30 PM
-      30,
-    );
-
-    // return now.isAfter(start) && now.isBefore(end);
-    return true;
-    
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,22 +138,18 @@ class TaskCard extends StatelessWidget {
                 ),
 
                 const Spacer(),
+
                 isEditable
                     ? !isEdited
-                          ? _isSubmissionWindowOpen
-                                ? Transform.scale(
-                                    scale: 0.8, // 80% of original size
-                                    alignment: Alignment.centerRight,
-                                    child: OutlinedButton.icon(
-                                      onPressed: onEdit,
-                                      icon: const Icon(
-                                        Icons.edit_outlined,
-                                        size: 16,
-                                      ),
-                                      label: const Text("Edit"),
-                                    ),
-                                  )
-                                : const SizedBox()
+                          ? Transform.scale(
+                              scale: 0.8, // 80% of original size
+                              alignment: Alignment.centerRight,
+                              child: OutlinedButton.icon(
+                                onPressed: onEdit,
+                                icon: const Icon(Icons.edit_outlined, size: 16),
+                                label: const Text("Edit"),
+                              ),
+                            )
                           : const Text("Edited")
                     : const SizedBox(),
               ],
@@ -204,7 +179,10 @@ class TaskCard extends StatelessWidget {
                   color: Colors.grey,
                 ),
                 const SizedBox(width: 4),
-                Text(dueDate, style: const TextStyle(color: Colors.grey)),
+                Text(
+                  dueDate.substring(0, 12),
+                  style: const TextStyle(color: Colors.grey),
+                ),
 
                 const SizedBox(width: 10),
 
@@ -238,7 +216,16 @@ class TaskCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Icon(Icons.person_2, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(fullName!, style: TextStyle(color: Colors.grey)),
+                Expanded(
+                  child: Text(
+                    fullName!,
+                    softWrap: true,
+                    maxLines: 1,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ),
+                SizedBox(width: 10,),
+                GlowingGreenDot(size: 8,isSynced: isSynced,),
               ],
             ),
           ],

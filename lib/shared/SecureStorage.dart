@@ -13,8 +13,12 @@ class SecureStorage {
   }
 
   static Future<String?> getEmpId() async {
-    return await _storage.read(key: "empId");
+    return await _storage.read(key: "employeeId");
   }
+  static Future<String?> getFullname() async {
+    return await _storage.read(key: "fullName");
+  }
+
 
   static Future<void> saveTokens({required String accessToken}) async {
     await _storage.write(key: "accessToken", value: accessToken);
@@ -35,5 +39,10 @@ class SecureStorage {
 
   static Future<void> clear() async {
     await _storage.deleteAll();
+  }
+
+  static Future<String?> getuserId() async {
+        return await _storage.read(key: "empId");
+
   }
 }
