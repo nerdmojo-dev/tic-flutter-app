@@ -126,9 +126,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
       _isSubmitting = false;
     });
     final submitted = await hasSubmittedToday();
-    print(submitted);
+    print(_isSubmissionWindowOpen.toString()+submitted.toString());
 
-    if (mounted && submitted) {
+    if (mounted) {
       setState(() {
         _submittedToday = submitted;
         // _submittedToday = false; // allow multiple submissions for testing
@@ -729,12 +729,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isSubmissionWindowOpen
-                  ? _submittedToday
-                        ? null
-                        : _isSubmitting
-                        ? null
-                        : _submit
+              onPressed: _isSubmissionWindowOpen && !_submittedToday && !_isSubmitting
+                  ? _submit
                   : null,
               icon: _isSubmitting
                   ? const SizedBox(
@@ -756,7 +752,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.blue,
+                disabledBackgroundColor: Colors.blueGrey.shade100,
                 disabledForegroundColor: Colors.white,
                 elevation: 3,
                 padding: const EdgeInsets.symmetric(
