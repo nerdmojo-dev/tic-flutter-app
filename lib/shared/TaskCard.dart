@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:tic_task_app/shared/GlowingGreenDot.dart';
 
 class TaskCard extends StatelessWidget {

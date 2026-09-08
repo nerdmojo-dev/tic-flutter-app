@@ -1,10 +1,5 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
-import 'package:lite_rolling_switch/lite_rolling_switch.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/repository/TaskRepository.dart';
 import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
@@ -13,11 +8,7 @@ import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
 import 'package:tic_task_app/route/pages/AddTask.dart';
 import 'package:tic_task_app/route/pages/ProfilePage.dart';
 import 'package:tic_task_app/route/pages/StatusReports.dart';
-import 'package:tic_task_app/shared/AppColors.dart';
-import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/CustomBottomBar.dart';
-import 'package:tic_task_app/shared/FilterCard.dart';
-import 'package:tic_task_app/shared/SecureStorage.dart';
 import 'package:tic_task_app/shared/SyncService.dart';
 
 class TaskScreen extends ConsumerStatefulWidget {

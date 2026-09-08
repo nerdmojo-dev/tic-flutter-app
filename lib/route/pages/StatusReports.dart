@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:tic_task_app/core/dio/dio_client.dart';
-import 'package:tic_task_app/core/repository/TaskRepository.dart';
-import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
-import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
 import 'package:tic_task_app/dto/Task.dart';
 import 'package:tic_task_app/route/EditStatusPage.dart';
-import 'package:tic_task_app/route/pages/AddTask.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/DateTime.dart';
-import 'package:tic_task_app/shared/FilterCard.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
-import 'package:tic_task_app/shared/SyncService.dart';
 import 'package:tic_task_app/shared/TaskCard.dart';
 
 class StatusReports extends ConsumerStatefulWidget {
-  const StatusReports({Key? key}) : super(key: key);
+  const StatusReports({super.key});
 
   @override
   ConsumerState<StatusReports> createState() => _StatusReportsState();

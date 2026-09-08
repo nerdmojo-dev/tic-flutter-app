@@ -1,4 +1,3 @@
-import 'package:tic_task_app/dto/Auth.dart';
 
 class ChangepasswordResponse {
   final bool hasError;

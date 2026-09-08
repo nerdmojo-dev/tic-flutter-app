@@ -287,7 +287,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                               117,
                               119,
                               124,
-                            ).withOpacity(0.8),
+                            ).withValues(alpha: 0.8),
                             disabledForegroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),

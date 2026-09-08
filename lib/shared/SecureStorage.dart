@@ -35,6 +35,7 @@ class SecureStorage {
     await _storage.read(
       key: "last_submit_date",
     );
+    return null;
   }
 
   static Future<void> clear() async {

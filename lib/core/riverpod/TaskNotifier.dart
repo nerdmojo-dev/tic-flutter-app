@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/repository/TaskRepository.dart';
 import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
-import 'package:tic_task_app/dto/Task.dart';
 import 'package:tic_task_app/dto/TaskResponseDto.dart';
 
 final taskProvider = AsyncNotifierProvider<TaskNotifier, List<TaskResponseDto>>(

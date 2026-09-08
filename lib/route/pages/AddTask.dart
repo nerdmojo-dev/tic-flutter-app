@@ -5,23 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
-import 'package:tic_task_app/core/riverpod/TaskNotifier.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:tic_task_app/dto/Task.dart';
 import 'package:tic_task_app/database/app_database.dart';
 import 'package:tic_task_app/shared/AnimatedSideBorderContainer.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
-import 'package:tic_task_app/shared/ConnectivityService.dart';
 import 'package:tic_task_app/shared/DateTime.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTask extends ConsumerStatefulWidget {
-  const AddTask({Key? key, this.task}) : super(key: key);
+  const AddTask({super.key, this.task});
   final Task? task;
 
   bool get isEdit => task != null;
@@ -192,7 +188,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
 
     try {
       print(
-        "[APPLICATION] STARTING CHECKING INIT ${widget.task != null ? widget.task!.id : null}",
+        "[APPLICATION] STARTING CHECKING INIT ${widget.task?.id}",
       );
       if (widget.isEdit) {
         final taskId = widget.task!.id;
@@ -685,7 +681,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedStatus,
+                initialValue: _selectedStatus,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.flag_outlined),
                   border: OutlineInputBorder(

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 
 class ApiInterceptor extends Interceptor {
@@ -71,7 +70,7 @@ class ApiInterceptor extends Interceptor {
 
       // Tell your AuthNotifier
       print("ApiInterceptor calling onLogout");
-      await onLogout?.call();
+      await onLogout.call();
 
       return handler.next(err);
     } finally {

@@ -11,8 +11,6 @@ import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
 import 'package:tic_task_app/dto/TaskResponse.dart';
 import 'package:tic_task_app/dto/TaskResponseDto.dart';
 import 'package:tic_task_app/dto/User.dart';
-import 'package:tic_task_app/route/ChangePassword.dart';
-import 'package:tic_task_app/shared/SecureStorage.dart';
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, User?>(
   AuthNotifier.new,
@@ -114,8 +112,8 @@ class AuthNotifier extends AsyncNotifier<User?> {
       Future.delayed(Duration(seconds: 2), () {
         state = AsyncData(currentUser.copyWith(isFirstLogin: false));
       });
-    } on Exception catch (e) {
-      throw e;
+    } on Exception {
+      rethrow;
     }
   }
 
@@ -135,8 +133,8 @@ class AuthNotifier extends AsyncNotifier<User?> {
       );
 
       return response;
-    } on Exception catch (e) {
-      throw e;
+    } on Exception {
+      rethrow;
     }
   }
 

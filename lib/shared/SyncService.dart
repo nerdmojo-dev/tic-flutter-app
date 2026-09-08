@@ -97,10 +97,10 @@ class TaskSyncService {
     } on DioException catch (e) {
       debugPrint('Translation error: ${e.message}');
 
-      throw e;
+      rethrow;
     } catch (e) {
       debugPrint('Translation error: $e');
-      throw e;
+      rethrow;
     }
   }
 }

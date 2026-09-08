@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_task_app/core/riverpod/AppDatabase.dart';
 import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/route/ChangePassword.dart';
-import 'package:tic_task_app/route/LoginScreen.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {

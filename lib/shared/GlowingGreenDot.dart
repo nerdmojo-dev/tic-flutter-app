@@ -39,7 +39,7 @@ class _GlowingGreenDotState extends State<GlowingGreenDot>
         children: [
           AnimatedBuilder(
             animation: _controller,
-            builder: (_, __) {
+            builder: (_, _) {
               final glow = 4 + (_controller.value * 12);
 
               return Container(
@@ -50,7 +50,7 @@ class _GlowingGreenDotState extends State<GlowingGreenDot>
                   color: widget.isSynced?Colors.green:Colors.red,
                   boxShadow: [
                     BoxShadow(
-                      color: widget.isSynced?Colors.green.withOpacity(0.8):Colors.red.withOpacity(0.8),
+                      color: widget.isSynced?Colors.green.withValues(alpha: 0.8):Colors.red.withValues(alpha: 0.8),
                       blurRadius: glow,
                       spreadRadius: glow / 10,
                     ),

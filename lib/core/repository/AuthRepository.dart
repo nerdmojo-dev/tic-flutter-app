@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:intl/intl.dart';
 import 'package:tic_task_app/dto/ApplicationResponse.dart';
 import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
 import 'package:tic_task_app/dto/TaskResponse.dart';
@@ -95,7 +94,7 @@ class AuthRepository {
       final response = await dio.post(
         "/tasks/addtask", // Replace with your endpoint
         data: {
-          "title": "$userFullName",
+          "title": userFullName,
           "description": text,
           "assignedTo": [],
           "dueDate": DateTime.now().toIso8601String(),

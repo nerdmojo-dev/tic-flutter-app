@@ -70,7 +70,7 @@ class _AuthGateState extends ConsumerState<AuthGate> {
       switchOutCurve: Curves.easeIn,
       child: auth.when(
         loading: () => const SplashScreen(key: ValueKey("splash")),
-        error: (_, __) => const LoginScreen(key: ValueKey("login")),
+        error: (_, _) => const LoginScreen(key: ValueKey("login")),
         data: (user) {
           if (user == null) {
             return const LoginScreen(key: ValueKey("login"));

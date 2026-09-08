@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 height: 120,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   boxShadow: [AppColors.shadowLg],
                 ),
                 child: ClipRRect(

@@ -41,7 +41,7 @@ class Taskrepository {
       return TaskResponseDto.fromJson(response.data);
     } on Exception catch (e) {
       print("HEHEHE: $e");
-      return new TaskResponseDto(
+      return TaskResponseDto(
         hasError: true,
         message: "Failed to fetch tasks",
         errors: [e.toString()],
@@ -168,7 +168,7 @@ class Taskrepository {
       final response = await dio.post(
         "/tasks/addtask", // Replace with your endpoint
         data: {
-          "title": "$userFullName",
+          "title": userFullName,
           "description": text,
           "assignedTo": [],
           "dueDate": DateTime.now().toIso8601String(),

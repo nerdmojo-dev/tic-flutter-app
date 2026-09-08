@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_task_app/core/dio/dio_client.dart';
@@ -6,7 +5,6 @@ import 'package:tic_task_app/core/repository/TaskRepository.dart';
 import 'package:tic_task_app/database/app_database.dart';
 import 'package:tic_task_app/route/AuthGate.dart';
 import 'package:flutter/services.dart';
-import 'package:tic_task_app/route/ChangePassword.dart';
 import 'package:tic_task_app/shared/SyncService.dart';
 import 'package:workmanager/workmanager.dart';
 
