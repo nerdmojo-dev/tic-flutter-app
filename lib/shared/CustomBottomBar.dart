@@ -12,8 +12,6 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF2563EB);
-
     return BottomAppBar(
       elevation: 10,
       color: Colors.white,
@@ -63,66 +61,13 @@ class CustomBottomBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: selected ? primary : Colors.grey,
-            ),
+            Icon(icon, color: selected ? primary : Colors.grey),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? primary : Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _submitItem({
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    const primary = Color(0xFF2563EB);
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: SizedBox(
-        width: 120,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 30,
-              width: 42,
-              decoration: BoxDecoration(
-                color: primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: primary.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.home_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              "Home",
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                 color: selected ? primary : Colors.grey,
               ),
             ),

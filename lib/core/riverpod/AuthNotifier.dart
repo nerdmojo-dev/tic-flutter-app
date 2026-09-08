@@ -7,7 +7,6 @@ import 'package:tic_task_app/core/dio/dio_client.dart';
 import 'package:tic_task_app/core/repository/AuthRepository.dart';
 import 'package:tic_task_app/dto/ApplicationResponse.dart';
 import 'package:tic_task_app/dto/Auth.dart';
-import 'package:tic_task_app/dto/ChangePasswordResponse.dart';
 import 'package:tic_task_app/dto/TaskResponse.dart';
 import 'package:tic_task_app/dto/TaskResponseDto.dart';
 import 'package:tic_task_app/dto/User.dart';
@@ -83,7 +82,6 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
       await _storage.write(key: "empId", value: authData.user.id);
 
-      print(authData.user.toJson());
       return authData.user;
     });
   }
@@ -98,7 +96,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
       if (currentUser == null) {
         throw Exception("No logged in user");
       }
-      ChangepasswordResponse response = await _repository.changePassword(
+      await _repository.changePassword(
         currentPassword: currentPassword,
         newPassword: newPassword,
       );

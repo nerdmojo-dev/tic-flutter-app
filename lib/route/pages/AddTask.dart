@@ -69,7 +69,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
 
     if (widget.isEdit) {
       _controller.text = widget.task!.description;
-      _jobNumber.text = widget.task!.title ?? "";
+      _jobNumber.text = widget.task!.title;
       _liveText = widget.task!.description;
       _selectedStatus = widget.task!.status;
 
@@ -114,8 +114,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
       30,
     );
 
-    // return now.isAfter(start) && now.isBefore(end);
-    return true;
+    return now.isAfter(start) && now.isBefore(end);
+    // return true;
   }
 
   Future<void> _loadSubmissionStatus() async {
