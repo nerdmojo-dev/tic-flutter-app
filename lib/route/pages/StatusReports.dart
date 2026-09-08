@@ -28,36 +28,7 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
   DateTime? endDate;
   String? currentEmpId;
 
-  bool _isSyncing = false;
-
-  Future<void> _syncTasks() async {
-    if (_isSyncing) return;
-
-    setState(() {
-      _isSyncing = true;
-    });
-
-    try {
-      final db = ref.read(databaseProvider);
-
-      // TODO: Sync local tasks
-      final repo = Taskrepository(DioClient.dio, db);
-      final service = TaskSyncService(repo, db);
-
-      await service.syncPendingTasks();
-    } catch (e, stackTrace) {
-      debugPrint("SYNC ERROR: $e");
-      debugPrintStack(stackTrace: stackTrace);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSyncing = false;
-        });
-      }
-      ref.invalidate(taskProvider);
-      await ref.read(taskProvider.future);
-    }
-  }
+  
 
   @override
   void initState() {
@@ -115,95 +86,7 @@ class _StatusReportsState extends ConsumerState<StatusReports> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 75,
-                  padding: const EdgeInsets.all(8),
-                  height: 75,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.white,
-                    border: Border.all(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                        blurRadius: 15,
-                        offset: Offset.zero,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      "lib/assets/logo.jpg",
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 15),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Welcome",
-                      style: TextStyle(fontSize: 15, color: Color(0xff0F172A)),
-                    ),
-                    Text(
-                      "Status Reports",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 22,
-                        color: Color(0xff0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const Spacer(),
-
-                // Sync button
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  decoration: BoxDecoration(
-                    color: _isSyncing
-                        ? Colors.grey.shade400
-                        : const Color(0xFF2563EB),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _isSyncing
-                            ? Colors.transparent
-                            : const Color(0xFF2563EB).withValues(alpha: 0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    onPressed: _isSyncing ? null : _syncTasks,
-                    tooltip: _isSyncing ? "Syncing..." : "Sync",
-                    icon: AnimatedRotation(
-                      turns: _isSyncing ? 1 : 0,
-                      duration: const Duration(milliseconds: 800),
-                      child: Icon(
-                        Icons.sync,
-                        color: _isSyncing ? Colors.white70 : Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            //tasks add
-            SizedBox(height: 30),
+            
             DateTimeWidget(),
 
             // FilterCard(

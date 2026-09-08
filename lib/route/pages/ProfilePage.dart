@@ -25,44 +25,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         data: (user) {
           return Column(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 75,
-                    padding: const EdgeInsets.all(8),
-                    height: 75,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                          blurRadius: 15,
-                          offset: Offset.zero,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image(image: AssetImage("lib/assets/logo.jpg")),
-                    ),
-                  ),
-                  SizedBox(width: 15),
-                  const Text(
-                    "My Profile",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22,
-                      color: Color(0xff0F172A),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 30),
               //tasks add
               Card(
                 elevation: 2,

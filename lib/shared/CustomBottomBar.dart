@@ -30,8 +30,8 @@ class CustomBottomBar extends StatelessWidget {
               onTap: () => onTap(0),
             ),
             _navItem(
-              icon: Icons.home_rounded,
-              label: "Home",
+              icon: Icons.assessment_outlined,
+              label: "Status Reports",
               selected: currentIndex == 1,
               onTap: () => onTap(1),
             ),

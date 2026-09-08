@@ -150,14 +150,25 @@ class _AddTaskState extends ConsumerState<AddTask> {
           context,
           message: "Tasks can only be submitted between 4 PM and 11:30 PM.",
         );
+        setState(() {
+          _isSubmitting = false;
+        });
         return;
       }
 
-      if (_submittedToday) return;
+      if (_submittedToday) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        return;
+      }
     }
 
     if (_controller.text.trim().isEmpty) {
       AppOverlaySnackbar.showError(context, message: "Please enter some text");
+      setState(() {
+        _isSubmitting = false;
+      });
       return;
     }
 
@@ -166,6 +177,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
         context,
         message: "Please enter some Job Number",
       );
+      setState(() {
+        _isSubmitting = false;
+      });
       return;
     }
     print("*****************SUBMITTING*****************");
@@ -387,9 +401,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
     print("****************translating******************");
     print("[TRANSLATING] ${_controller.text}");
 
-
-      final englishPattern = RegExp(r"^[a-zA-Z0-9\s.,!?\'-]+$");
-    if(englishPattern.hasMatch(_controller.text.trim())){
+    final englishPattern = RegExp(r"^[a-zA-Z0-9\s.,!?\'-]+$");
+    if (englishPattern.hasMatch(_controller.text.trim())) {
       print("[TRANSLATING] Text is already in English, skipping translation.");
       setState(() {
         _translatedText = _controller.text.trim();
@@ -427,55 +440,38 @@ class _AddTaskState extends ConsumerState<AddTask> {
       key: _formKey,
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 75,
-                padding: const EdgeInsets.all(8),
-                height: 75,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.white,
-                  border: Border.all(
-                    color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                    width: 2,
+          (!widget.isEdit) && _submittedToday
+              ? Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade300,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                      blurRadius: 15,
-                      offset: Offset.zero,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image(image: AssetImage("lib/assets/logo.jpg")),
-                ),
-              ),
-              SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.isEdit ? "Update Task Status" : "Submit Status",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22,
-                      color: Color(0xff0F172A),
-                    ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 10),
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "You have already submitted your task for today.",
+                          style: TextStyle(
+                            color: Colors.red.shade600,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    widget.isEdit ? "Update Task Status" : "Submit Status for today",
-                    style: TextStyle(fontSize: 15, color: Color(0xff0F172A)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 25),
-          !widget.isEdit ? DateTimeWidget() : SizedBox(),
-          SizedBox(height: 25),
+                )
+              : SizedBox(),
+          SizedBox(height: 15),
+          DateTimeWidget(),
+          SizedBox(height: 10),
           //tasks add
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
