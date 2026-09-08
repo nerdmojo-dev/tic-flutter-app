@@ -26,10 +26,10 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
   int currentIndex = 0;
   Widget getCurrentPage() {
     switch (currentIndex) {
-      case 0:
+      case 1:
         return StatusReports(key: UniqueKey());
 
-      case 1:
+      case 0:
         return AddTask();
 
       case 2:

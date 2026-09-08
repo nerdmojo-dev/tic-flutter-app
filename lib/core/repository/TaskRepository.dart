@@ -36,10 +36,11 @@ class Taskrepository {
       );
 
       print(response);
+      print("********************FETCHED TASKS*****************************");
 
       return TaskResponseDto.fromJson(response.data);
     } on Exception catch (e) {
-      print(e);
+      print("HEHEHE: $e");
       return new TaskResponseDto(
         hasError: true,
         message: "Failed to fetch tasks",

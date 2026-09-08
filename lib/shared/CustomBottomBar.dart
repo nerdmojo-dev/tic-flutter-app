@@ -24,12 +24,14 @@ class CustomBottomBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _navItem(
-              icon: Icons.home_rounded,
-              label: "Home",
+              icon: Icons.add_task_rounded,
+              label: "Add Task",
               selected: currentIndex == 0,
               onTap: () => onTap(0),
             ),
-            _submitItem(
+            _navItem(
+              icon: Icons.home_rounded,
+              label: "Home",
               selected: currentIndex == 1,
               onTap: () => onTap(1),
             ),
@@ -109,14 +111,14 @@ class CustomBottomBar extends StatelessWidget {
                 ],
               ),
               child: const Icon(
-                Icons.add,
+                Icons.home_rounded,
                 color: Colors.white,
                 size: 24,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              "Submit Status",
+              "Home",
               style: TextStyle(
                 fontSize: 12,
                 fontWeight:

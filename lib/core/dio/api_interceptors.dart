@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:tic_task_app/core/riverpod/AuthNotifier.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 
 class ApiInterceptor extends Interceptor {
   final Dio dio;
+  final Future<void> Function() onLogout;
 
-  ApiInterceptor(this.dio);
+  ApiInterceptor(this.dio, {required this.onLogout});
 
   bool _isRefreshing = false;
   Completer<void>? _refreshCompleter;
@@ -21,6 +23,7 @@ class ApiInterceptor extends Interceptor {
       return handler.next(options);
     }
 
+    print("********************REQUESTING TOKEN************************");
     final token = await SecureStorage.getAccessToken();
 
     if (token != null && token.isNotEmpty) {
@@ -46,6 +49,7 @@ class ApiInterceptor extends Interceptor {
     }
 
     try {
+      print("********************REFRESHING TOKEN************************");
       if (_isRefreshing) {
         await _refreshCompleter!.future;
       } else {
@@ -64,6 +68,10 @@ class ApiInterceptor extends Interceptor {
       if (!(_refreshCompleter?.isCompleted ?? true)) {
         _refreshCompleter!.completeError(e);
       }
+
+      // Tell your AuthNotifier
+      print("ApiInterceptor calling onLogout");
+      await onLogout?.call();
 
       return handler.next(err);
     } finally {
@@ -89,10 +97,10 @@ class ApiInterceptor extends Interceptor {
     final data = response.data;
     print("CURRENT STATE OF DATA:${data["data"]["token"]}");
     final newAccessToken = data["data"]["token"];
-    
-    
+
     if (newAccessToken == null) {
-      throw Exception("No access token returned");
+      //logout the user and route to login page
+      throw Exception("Failed to refresh token");
     }
 
     await SecureStorage.saveTokens(accessToken: newAccessToken);

@@ -88,7 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Column(
                         children: [
                           const Text(
-                            "Welcome Back",
+                            "Welcome",
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,

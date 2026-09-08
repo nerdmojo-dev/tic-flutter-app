@@ -29,6 +29,9 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
   @override
   Future<User?> build() async {
+    DioClient.onLogout=() async {
+      await logout();
+    };
     await Future.delayed(const Duration(seconds: 4));
 
     final userJson = await _storage.read(key: "user");

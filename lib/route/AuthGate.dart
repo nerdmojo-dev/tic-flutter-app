@@ -29,6 +29,9 @@ class _AuthGateState extends ConsumerState<AuthGate> {
 
     db = ref.read(databaseProvider);
     _connectivityService = ConnectivityService();
+    DioClient.onLogout = () async {
+      // await ref.read(authProvider.notifier).logout();
+    };
 
     _connectivityService.start(() async {
       try {

@@ -69,7 +69,7 @@ class TaskSyncService {
         await Future.delayed(Duration(seconds: 5));
       }
     }
-    debugPrint("*********************SYNC TASKS*****************************");
+    debugPrint("**************************************************");
   }
 
   bool isBengali(String text) {

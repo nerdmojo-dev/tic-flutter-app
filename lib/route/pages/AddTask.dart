@@ -16,6 +16,7 @@ import 'package:tic_task_app/shared/AnimatedSideBorderContainer.dart';
 import 'package:tic_task_app/shared/AppColors.dart';
 import 'package:tic_task_app/shared/AppOverlaySnackbar.dart';
 import 'package:tic_task_app/shared/ConnectivityService.dart';
+import 'package:tic_task_app/shared/DateTime.dart';
 import 'package:tic_task_app/shared/SecureStorage.dart';
 import 'package:uuid/uuid.dart';
 
@@ -117,8 +118,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
       30,
     );
 
-    return now.isAfter(start) && now.isBefore(end);
-    // return true;
+    // return now.isAfter(start) && now.isBefore(end);
+    return true;
   }
 
   Future<void> _loadSubmissionStatus() async {
@@ -126,9 +127,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
       _isSubmitting = false;
     });
     final submitted = await hasSubmittedToday();
-    print(submitted);
+    print(_isSubmissionWindowOpen.toString() + submitted.toString());
 
-    if (mounted && submitted) {
+    if (mounted) {
       setState(() {
         _submittedToday = submitted;
         // _submittedToday = false; // allow multiple submissions for testing
@@ -173,7 +174,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
       if (_locale == "bn_IN" && _translatedText.isEmpty) await _translate();
     } catch (e) {}
 
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(milliseconds: 1000));
 
     try {
       print(
@@ -385,6 +386,17 @@ class _AddTaskState extends ConsumerState<AddTask> {
   Future<void> _translate() async {
     print("****************translating******************");
     print("[TRANSLATING] ${_controller.text}");
+
+
+      final englishPattern = RegExp(r"^[a-zA-Z0-9\s.,!?\'-]+$");
+    if(englishPattern.hasMatch(_controller.text.trim())){
+      print("[TRANSLATING] Text is already in English, skipping translation.");
+      setState(() {
+        _translatedText = _controller.text.trim();
+        _showTranslation = true;
+      });
+      return;
+    }
     setState(() {
       _isTranslating = true;
       _showTranslation = true;
@@ -445,8 +457,8 @@ class _AddTaskState extends ConsumerState<AddTask> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Submit Status",
+                  Text(
+                    widget.isEdit ? "Update Task Status" : "Submit Status",
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 22,
@@ -454,13 +466,16 @@ class _AddTaskState extends ConsumerState<AddTask> {
                     ),
                   ),
                   Text(
-                    widget.isEdit ? "Update Task Status" : "Submit Status",
+                    widget.isEdit ? "Update Task Status" : "Submit Status for today",
                     style: TextStyle(fontSize: 15, color: Color(0xff0F172A)),
                   ),
                 ],
               ),
             ],
           ),
+          SizedBox(height: 25),
+          !widget.isEdit ? DateTimeWidget() : SizedBox(),
+          SizedBox(height: 25),
           //tasks add
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -729,12 +744,9 @@ class _AddTaskState extends ConsumerState<AddTask> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isSubmissionWindowOpen
-                  ? _submittedToday
-                        ? null
-                        : _isSubmitting
-                        ? null
-                        : _submit
+              onPressed:
+                  _isSubmissionWindowOpen && !_submittedToday && !_isSubmitting
+                  ? _submit
                   : null,
               icon: _isSubmitting
                   ? const SizedBox(
@@ -756,7 +768,7 @@ class _AddTaskState extends ConsumerState<AddTask> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.blue,
+                disabledBackgroundColor: Colors.blueGrey.shade100,
                 disabledForegroundColor: Colors.white,
                 elevation: 3,
                 padding: const EdgeInsets.symmetric(
