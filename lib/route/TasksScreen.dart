@@ -120,7 +120,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
 
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             "Welcome",
                             style: TextStyle(
@@ -129,7 +129,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                             ),
                           ),
                           Text(
-                            "Status Reports",
+                            currentIndex==1 ? "Status Reports" : currentIndex==0? "Add Tasks" : "Profile",
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 22,

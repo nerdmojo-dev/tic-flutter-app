@@ -44,7 +44,6 @@ class _AddTaskState extends ConsumerState<AddTask> {
   bool _submittedToday = false;
   bool _showTranslateButton = false;
   bool _isTranslating = false;
-  bool _showTranslation = false;
 
   String _selectedStatus = "Todo";
 
@@ -402,13 +401,11 @@ class _AddTaskState extends ConsumerState<AddTask> {
       print("[TRANSLATING] Text is already in English, skipping translation.");
       setState(() {
         _translatedText = _controller.text.trim();
-        _showTranslation = true;
       });
       return;
     }
     setState(() {
       _isTranslating = true;
-      _showTranslation = true;
     });
 
     try {

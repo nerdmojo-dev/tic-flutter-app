@@ -1,4 +1,4 @@
-package com.example.tic_task_app
+package com.ticinsight.tic_task_app
 
 import io.flutter.embedding.android.FlutterActivity
 
